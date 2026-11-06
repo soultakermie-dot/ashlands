@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="css/base.css">
   <link rel="stylesheet" href="css/forms.css">
   <link rel="stylesheet" href="css/screens.css">
+  <link rel="stylesheet" href="css/accounts.css">
 </head>
 <body>
   <!-- Поки чекаємо на сервер -->
@@ -43,13 +44,32 @@
     </section>
   </main>
 
+  <!-- Акаунт чекає підтвердження ДМ -->
+  <main class="splash" data-screen="pending" hidden>
+    <h1>ASHLANDS</h1>
+    <section class="panel">
+      <p>Вітаємо, <strong data-user-name></strong>!</p>
+      <p>Майстер має підтвердити ваш акаунт.<br>Щойно це станеться, ви потрапите в гру автоматично.</p>
+      <p class="hint">Цю сторінку можна не закривати.</p>
+      <button type="button" class="btn btn--ghost" data-logout>Вийти</button>
+    </section>
+  </main>
+
   <!-- Головний екран (тимчасовий, до карти) -->
   <main class="splash" data-screen="home" hidden>
     <h1>ASHLANDS</h1>
-    <section class="panel" id="user-bar">
+    <section class="panel">
       <p>Ви увійшли як <strong data-user-name></strong></p>
       <p class="hint" data-user-role></p>
       <button type="button" class="btn btn--ghost" data-logout>Вийти</button>
+    </section>
+
+    <!-- Тільки для ДМ -->
+    <section class="panel panel--wide" id="accounts-panel" hidden>
+      <h2 class="panel__title">Гравці</h2>
+      <p class="hint" data-pending-count></p>
+      <p class="form-error" hidden></p>
+      <ul class="player-list" data-players></ul>
     </section>
   </main>
 

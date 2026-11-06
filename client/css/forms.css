@@ -39,6 +39,10 @@
 .btn:disabled { opacity: 0.5; cursor: wait; }
 .btn:hover:not(:disabled) { filter: brightness(1.1); }
 
+.btn--small { padding: 0.35rem 0.7rem; font-size: 0.85rem; }
+.btn--ok { background: var(--ok); border-color: var(--ok); }
+.btn--bad { background: var(--bad); border-color: var(--bad); }
+
 .btn--ghost {
   background: transparent;
   color: var(--text);

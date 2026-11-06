@@ -48,5 +48,12 @@ export function initAuthScreen(root) {
     else showError(res.error);
   });
 
+  // Коли користувача викинуло з гри — показуємо причину.
+  session.onChange((user) => {
+    if (user) return;
+    const notice = session.takeNotice();
+    if (notice) showError(notice);
+  });
+
   setMode('login');
 }

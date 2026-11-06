@@ -1,10 +1,12 @@
 // Стан входу: хто зараз увійшов. Токен зберігається в браузері, щоб не логінитись щоразу.
+import { socket } from '../net/socket.js';
 import { request } from '../net/request.js';
 
 const TOKEN_KEY = 'ashlands.token';
 const listeners = new Set();
 
 let currentUser = null;
+let notice = '';
 
 function readToken() {
   try { return localStorage.getItem(TOKEN_KEY); } catch { return null; }
@@ -25,16 +27,34 @@ function setUser(user) {
 async function signIn(event, payload) {
   const res = await request(event, payload);
   if (res.ok) {
+    notice = '';
     writeToken(res.token);
     setUser(res.user);
   }
   return res;
 }
 
+// Сервер повідомив, що акаунт змінився (наприклад, ДМ пустив у гру).
+socket.on('auth:changed', (user) => setUser(user));
+
+// Сервер викинув з гри (заявку відхилено або акаунт заблоковано).
+socket.on('auth:kicked', ({ reason }) => {
+  notice = reason;
+  writeToken(null);
+  setUser(null);
+});
+
 export const session = {
   get user() { return currentUser; },
 
-  // Підписатися на зміну користувача (вхід / вихід).
+  // Повідомлення для екрана входу (чому користувача викинуло). Читається один раз.
+  takeNotice() {
+    const text = notice;
+    notice = '';
+    return text;
+  },
+
+  // Підписатися на зміну користувача (вхід / вихід / зміна статусу).
   onChange(fn) {
     listeners.add(fn);
     return () => listeners.delete(fn);
@@ -55,8 +75,11 @@ export const session = {
       setUser(res.user);
       return true;
     }
-    // Мережева помилка — токен не чіпаємо; недійсний токен — прибираємо.
-    if (res.error && !res.error.startsWith('Сервер не відповідає')) writeToken(null);
+    // Мережева помилка — токен не чіпаємо; недійсний токен — прибираємо й пояснюємо чому.
+    if (res.error && !res.error.startsWith('Сервер не відповідає')) {
+      writeToken(null);
+      notice = res.error;
+    }
     setUser(null);
     return false;
   },
