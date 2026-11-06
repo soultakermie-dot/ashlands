@@ -18,6 +18,7 @@
   <link rel="stylesheet" href="css/editor.css">
   <link rel="stylesheet" href="css/travel.css">
   <link rel="stylesheet" href="css/groups.css">
+  <link rel="stylesheet" href="css/dice.css">
 </head>
 <body>
   <!-- Поки чекаємо на сервер -->
@@ -87,6 +88,7 @@
       <div class="travel-status" data-travel-status hidden></div>
       <div class="travel-status group-banner" data-group-banner hidden></div>
       <p class="map-message" data-map-message hidden></p>
+      <div class="travel-status dice-toast" data-dice-toast hidden></div>
     </div>
     <div class="location-card token-card" data-token-card hidden></div>
 
@@ -138,6 +140,7 @@
         <button type="button" class="nav-btn" data-open-view="inventory" data-player-only>🎒 <span>Інвентар</span></button>
         <button type="button" class="nav-btn" data-open-view="group" data-player-only>⚑ <span>Група</span></button>
         <button type="button" class="nav-btn" data-open-view="players">👥 <span>Гравці</span></button>
+        <button type="button" class="nav-btn" data-open-view="dice">🎲 <span>Кубики</span></button>
 
         <div class="sidebar__dm" data-dm-only hidden>
           <p class="sidebar__divider">ДМ</p>
@@ -210,6 +213,10 @@
 
       <div data-view="groups" data-title="⚑ Групи" hidden>
         <section data-groups-dm-panel></section>
+      </div>
+
+      <div data-view="dice" data-title="🎲 Кубики" hidden>
+        <section data-dice-panel></section>
       </div>
 
       <div data-view="players" data-title="👥 Гравці" hidden>

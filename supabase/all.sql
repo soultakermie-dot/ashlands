@@ -123,10 +123,21 @@ alter table public.roads enable row level security;
 alter table public.characters add column if not exists travel jsonb;
 
 -- ===== 011_groups.sql =====
-create table if not exists public.groups (
-  id                  uuid        primary key,
-  leader_character_id uuid        not null,
-  members             jsonb       not null default '[]'::jsonb,
-  created_at          timestamptz not null default now()
+    create table if not exists public.groups (
+      id                  uuid        primary key,
+      leader_character_id uuid        not null,
+      members             jsonb       not null default '[]'::jsonb,
+      created_at          timestamptz not null default now()
+    );
+    alter table public.groups enable row level security;
+
+-- ===== 012_dm_tools.sql =====
+create table if not exists public.dm_notes (
+  id         uuid        primary key,
+  title      text        not null default '' check (char_length(title) <= 100),
+  body       text        not null default '' check (char_length(body) <= 10000),
+  updated_at timestamptz not null default now(),
+  created_at timestamptz not null default now()
 );
-alter table public.groups enable row level security;
+alter table public.dm_notes enable row level security;
+alter table public.characters add column if not exists dungeon jsonb;

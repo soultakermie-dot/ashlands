@@ -78,6 +78,7 @@ export const tables = {
       sheet: c.sheet ?? {},
       gold: c.gold ?? 0,
       travel: c.travel ?? null,
+      dungeon: c.dungeon ?? null,
       created_at: c.createdAt,
       reviewed_at: c.reviewedAt,
     })),
@@ -93,6 +94,7 @@ export const tables = {
         sheet: r.sheet ?? {},
         gold: r.gold ?? 0,
         travel: r.travel ?? null,
+        dungeon: r.dungeon ?? null,
         createdAt: r.created_at,
         reviewedAt: r.reviewed_at,
       })),
@@ -214,13 +216,21 @@ export const tables = {
     }),
   },
 
+  dmNotes: {
+    table: 'dm_notes',
+    key: 'id',
+    defaults: { notes: [] },
+    toRows: ({ notes }) => notes.map((n) => ({ id: n.id, title: n.title, body: n.body, updated_at: n.updatedAt, created_at: n.createdAt })),
+    fromRows: (rows) => ({ notes: rows.map((r) => ({ id: r.id, title: r.title, body: r.body, updatedAt: r.updated_at, createdAt: r.created_at })) }),
+  },
+
   // Налаштування світу (стартова точка тощо) — один рядок app_meta з ключем 'world'.
   worldSettings: {
     table: 'app_meta',
     key: 'key',
-    defaults: { spawn: null, seeded: false, travelApproval: false, gamePaused: false },
+    defaults: { spawn: null, seeded: false, travelApproval: false, gamePaused: false, clock: null },
     toRows: (data) => [{ key: 'world', value: data }],
-    fromRows: (rows) => ({ spawn: null, seeded: false, travelApproval: false, gamePaused: false, ...(rows.find((r) => r.key === 'world')?.value ?? {}) }),
+    fromRows: (rows) => ({ spawn: null, seeded: false, travelApproval: false, gamePaused: false, clock: null, ...(rows.find((r) => r.key === 'world')?.value ?? {}) }),
   },
 
   // Службова інформація — один рядок з ключем 'server'.

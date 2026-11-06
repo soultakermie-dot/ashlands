@@ -28,7 +28,8 @@ export const stores = {
   characters: makeStore('characters', [users]), // персонажі гравців (з листом і золотом)
   items: makeStore('items'),             // бібліотека предметів (створює ДМ)
   locations: makeStore('locations'),     // міста й підземелля
-  worldSettings: makeStore('worldSettings'), // стартова точка тощо
+  worldSettings: makeStore('worldSettings'), // стартова точка, годинник тощо
+  dmNotes: makeStore('dmNotes'),         // приватні нотатки ДМ
 };
 
 // Інвентар посилається і на персонажів, і на предмети — зберігається після них.

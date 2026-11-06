@@ -14,11 +14,12 @@ import { registerItems } from './handlers/items.js';
 import { registerInventory } from './handlers/inventory.js';
 import { registerTravel, startTravelTicker } from './handlers/travel.js';
 import { registerGroups, startGroupsTicker } from './handlers/groups.js';
+import { registerDice } from './handlers/dice.js';
 
 const handlers = [
   registerPresence, registerServerInfo, registerAuth, registerAccounts, registerCharacters, registerWorld,
   registerTokens, registerPlayers, registerSheet, registerItems, registerInventory, registerTravel,
-  registerGroups,
+  registerGroups, registerDice,
 ];
 
 // Найбільше повідомлення від клієнта (з запасом для аватарки до 512 КБ).
