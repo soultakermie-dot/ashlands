@@ -14,11 +14,10 @@ initAuthScreen(document.getElementById('auth-screen'));
 initUserBar();
 initAccountsPanel(document.getElementById('accounts-panel'));
 
-// Який екран показати залежно від стану акаунта.
+// Не увійшов — вхід; увійшов, але ДМ ще не пустив — очікування; інакше — гра.
 function screenFor(user) {
   if (!user) return 'auth';
-  if (user.status === 'pending') return 'pending';
-  return 'home';
+  return user.admitted ? 'home' : 'waiting';
 }
 
 session.onChange((user) => showScreen(screenFor(user)));

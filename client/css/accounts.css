@@ -1,24 +1,33 @@
-/* Панель ДМ «Гравці»: список акаунтів з кнопками. */
-.panel--wide { width: min(560px, 100%); }
+/* Панель ДМ «Вхід у гру»: хто проситься, хто в грі, примітки. */
+.panel--wide { width: min(720px, 100%); }
 
 .panel__title {
-  margin: 0 0 0.25rem;
+  margin: 0 0 0.5rem;
   font-size: 1.3rem;
   letter-spacing: 0.1em;
 }
 
+.panel__subtitle {
+  margin: 1.25rem 0 0;
+  font-size: 1rem;
+  text-align: left;
+  opacity: 0.85;
+}
+
 .player-list {
   list-style: none;
-  margin: 1rem 0 0;
+  margin: 0.5rem 0 0;
   padding: 0;
   display: grid;
   gap: 0.5rem;
   text-align: left;
 }
 
+.player-list__empty { padding: 0.25rem 0; }
+
 .player-row {
   display: grid;
-  grid-template-columns: 1fr auto auto;
+  grid-template-columns: 4.5rem 8rem 1fr auto;
   align-items: center;
   gap: 0.75rem;
   padding: 0.5rem 0.75rem;
@@ -26,14 +35,41 @@
   border-radius: 4px;
 }
 
-.player-row--pending { border-color: var(--accent); }
-.player-row--blocked { opacity: 0.6; }
+.player-row--waiting { border-color: var(--accent); }
+.player-row--away { opacity: 0.55; }
 
 .player-row__name { font-weight: bold; overflow-wrap: anywhere; }
-.player-row__status { font-size: 0.85rem; opacity: 0.7; }
 .player-row__actions { display: flex; gap: 0.4rem; }
 
-@media (max-width: 480px) {
-  .player-row { grid-template-columns: 1fr auto; }
+.player-row__note {
+  min-width: 0;
+  padding: 0.35rem 0.5rem;
+  background: var(--bg);
+  border: 1px solid transparent;
+  border-radius: 4px;
+  color: var(--text);
+  font: inherit;
+  font-size: 0.85rem;
+  font-style: italic;
+}
+
+.player-row__note:hover { border-color: var(--border); }
+.player-row__note:focus { outline: none; border-color: var(--accent); font-style: normal; }
+
+.badge {
+  justify-self: start;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+.badge--new { background: var(--accent); color: var(--bg); }
+.badge--old { border: 1px solid var(--border); opacity: 0.8; }
+
+@media (max-width: 560px) {
+  .player-row { grid-template-columns: auto 1fr; }
+  .player-row__note,
   .player-row__actions { grid-column: 1 / -1; }
 }

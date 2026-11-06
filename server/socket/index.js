@@ -4,7 +4,7 @@ import { Server } from 'socket.io';
 import { registerPresence } from './handlers/presence.js';
 import { registerServerInfo } from './handlers/serverInfo.js';
 import { registerAuth } from './handlers/auth.js';
-import { registerAccounts } from './handlers/accounts.js';
+import { registerAccounts, startAwayExpiry } from './handlers/accounts.js';
 
 const handlers = [registerPresence, registerServerInfo, registerAuth, registerAccounts];
 
@@ -15,5 +15,6 @@ export function createSocketServer(httpServer) {
     for (const register of handlers) register(io, socket);
   });
 
+  startAwayExpiry(io);
   return io;
 }

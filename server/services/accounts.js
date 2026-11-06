@@ -1,15 +1,34 @@
-// Керування акаунтами гравців з боку ДМ: пустити, не пустити, вигнати, повернути.
+// «Вхід у гру» з боку ДМ: хто проситься, хто в грі, примітки.
 import { GameError } from './errors.js';
+import { admit, isAdmitted, isAway, listAdmittedIds, revoke } from './admission.js';
 import { revokeUserSessions } from './auth.js';
-import { ROLES, STATUS, deleteUser, findUserById, listUsers, setUserStatus, toPublicUser } from './users.js';
+import { NOTE_MAX, ROLES, findUserById, isNewPlayer, markFirstAdmission, setDmNote } from './users.js';
 
-// Список гравців для панелі ДМ: спершу заявки, потім решта за датою.
-export function listPlayers() {
-  const order = { [STATUS.PENDING]: 0, [STATUS.ACTIVE]: 1, [STATUS.BLOCKED]: 2 };
-  return listUsers()
-    .filter((u) => u.role === ROLES.PLAYER)
-    .map(toPublicUser)
-    .sort((a, b) => order[a.status] - order[b.status] || a.createdAt.localeCompare(b.createdAt));
+const toLobbyEntry = (user, online) => ({
+  id: user.id,
+  login: user.login,
+  isNew: isNewPlayer(user),
+  note: user.dmNote ?? '',
+  online,
+});
+
+// Що бачить ДМ. onlineIds — гравці, які зараз на зв'язку.
+export function buildLobby(onlineIds) {
+  const players = [...onlineIds]
+    .map(findUserById)
+    .filter((u) => u?.role === ROLES.PLAYER);
+
+  const waiting = players
+    .filter((u) => !isAdmitted(u.id))
+    .map((u) => toLobbyEntry(u, true));
+
+  const inGame = listAdmittedIds()
+    .map(findUserById)
+    .filter((u) => u?.role === ROLES.PLAYER)
+    .map((u) => toLobbyEntry(u, !isAway(u.id)))
+    .sort((a, b) => a.login.localeCompare(b.login));
+
+  return { waiting, inGame };
 }
 
 function getPlayer(userId) {
@@ -19,24 +38,25 @@ function getPlayer(userId) {
   return user;
 }
 
-// Пустити в гру (нову заявку або розблокувати).
-export function approve(userId) {
+// Пустити в гру.
+export function letIn(userId) {
   const user = getPlayer(userId);
-  setUserStatus(user, STATUS.ACTIVE);
-  return toPublicUser(user);
+  admit(user.id);
+  markFirstAdmission(user);
+  return user;
 }
 
-// Не пускати: заявку видаляємо, тож людина може зареєструватися знову.
-export function reject(userId) {
+// Не пускати / вигнати: знімаємо допуск і вхід — гравець повертається на екран входу. Дані лишаються.
+export function sendToLogin(userId) {
   const user = getPlayer(userId);
-  if (user.status !== STATUS.PENDING) throw new GameError('Відхилити можна лише нову заявку');
+  revoke(user.id);
   revokeUserSessions(user.id);
-  deleteUser(user);
+  return user;
 }
 
-// Вигнати: акаунт блокується (дані лишаються, можна повернути).
-export function block(userId) {
+export function updateNote(userId, note) {
   const user = getPlayer(userId);
-  setUserStatus(user, STATUS.BLOCKED);
-  revokeUserSessions(user.id);
+  if (typeof note !== 'string') throw new GameError('Примітка має бути текстом');
+  if (note.length > NOTE_MAX) throw new GameError(`Примітка: до ${NOTE_MAX} символів`);
+  setDmNote(user, note);
 }

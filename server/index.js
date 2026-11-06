@@ -5,8 +5,10 @@ import { createApp } from './http/app.js';
 import { createSocketServer } from './socket/index.js';
 import { flushAll } from './storage/index.js';
 import { recordLaunch } from './services/meta.js';
+import { markAllAwayOnStartup } from './services/admission.js';
 
 recordLaunch();
+markAllAwayOnStartup(); // після перезапуску в гравців є 10 хв, щоб повернутися без нового допуску
 
 const httpServer = createServer(createApp());
 createSocketServer(httpServer);

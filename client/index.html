@@ -38,18 +38,18 @@
           <span>Повторіть пароль</span>
           <input name="repeat" type="password" autocomplete="new-password" maxlength="100">
         </label>
-        <p class="form-error" hidden></p>
+        <p class="form-message" hidden></p>
         <button type="submit" class="btn">Увійти</button>
       </form>
     </section>
   </main>
 
-  <!-- Акаунт чекає підтвердження ДМ -->
-  <main class="splash" data-screen="pending" hidden>
+  <!-- Гравець увійшов, але ДМ ще не пустив -->
+  <main class="splash" data-screen="waiting" hidden>
     <h1>ASHLANDS</h1>
     <section class="panel">
       <p>Вітаємо, <strong data-user-name></strong>!</p>
-      <p>Майстер має підтвердити ваш акаунт.<br>Щойно це станеться, ви потрапите в гру автоматично.</p>
+      <p>Майстер має пустити вас у гру.<br>Щойно це станеться, ви потрапите в гру автоматично.</p>
       <p class="hint">Цю сторінку можна не закривати.</p>
       <button type="button" class="btn btn--ghost" data-logout>Вийти</button>
     </section>
@@ -66,10 +66,16 @@
 
     <!-- Тільки для ДМ -->
     <section class="panel panel--wide" id="accounts-panel" hidden>
-      <h2 class="panel__title">Гравці</h2>
-      <p class="hint" data-pending-count></p>
-      <p class="form-error" hidden></p>
-      <ul class="player-list" data-players></ul>
+      <h2 class="panel__title">Вхід у гру</h2>
+      <p class="form-message" hidden></p>
+
+      <h3 class="panel__subtitle">Хочуть приєднатися (<span data-waiting-count>0</span>)</h3>
+      <ul class="player-list" data-waiting></ul>
+
+      <h3 class="panel__subtitle">У грі (<span data-in-game-count>0</span>)</h3>
+      <ul class="player-list" data-in-game></ul>
+
+      <p class="hint">Примітки бачить тільки ДМ.</p>
     </section>
   </main>
 

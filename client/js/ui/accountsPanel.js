@@ -1,87 +1,143 @@
-// Панель ДМ «Гравці»: нові заявки, активні й заблоковані гравці з кнопками дій.
+// Панель ДМ «Вхід у гру»: хто проситься (Новий / Старий), хто в грі, примітки ДМ.
 import { socket } from '../net/socket.js';
 import { request } from '../net/request.js';
 import { session } from '../state/session.js';
 
-const STATUS_NAMES = { pending: 'Чекає', active: 'Грає', blocked: 'Вигнаний' };
-
-// Які кнопки показувати для кожного статусу.
-const ACTIONS = {
-  pending: [
-    { event: 'accounts:approve', label: 'Пустити', css: 'btn--ok' },
-    { event: 'accounts:reject', label: 'Не пускати', css: 'btn--bad', confirm: 'Відхилити заявку «{login}»?' },
-  ],
-  active: [
-    { event: 'accounts:block', label: 'Вигнати', css: 'btn--bad', confirm: 'Вигнати «{login}» з гри?' },
-  ],
-  blocked: [
-    { event: 'accounts:approve', label: 'Повернути', css: 'btn--ok' },
-  ],
-};
+const NOTE_MAX = 200;
 
 export function initAccountsPanel(root) {
-  const listEl = root.querySelector('[data-players]');
-  const countEl = root.querySelector('[data-pending-count]');
-  const errorEl = root.querySelector('.form-error');
+  const waitingEl = root.querySelector('[data-waiting]');
+  const inGameEl = root.querySelector('[data-in-game]');
+  const waitingCount = root.querySelector('[data-waiting-count]');
+  const inGameCount = root.querySelector('[data-in-game-count]');
+  const errorEl = root.querySelector('.form-message');
 
-  function render(players) {
-    const pending = players.filter((p) => p.status === 'pending').length;
-    countEl.textContent = pending ? `Нових заявок: ${pending}` : 'Нових заявок нема';
-
-    listEl.replaceChildren(...players.map(renderRow));
-    if (!players.length) {
-      const empty = document.createElement('li');
-      empty.className = 'hint';
-      empty.textContent = 'Поки ніхто не зареєструвався';
-      listEl.append(empty);
-    }
+  function showError(text) {
+    errorEl.textContent = text;
+    errorEl.hidden = !text;
   }
 
-  function renderRow(player) {
+  async function send(event, payload) {
+    const res = await request(event, payload);
+    showError(res.ok ? '' : res.error);
+    return res.ok;
+  }
+
+  function render({ waiting, inGame }) {
+    waitingCount.textContent = waiting.length;
+    inGameCount.textContent = inGame.length;
+    fillList(waitingEl, waiting, renderWaiting, 'Ніхто не проситься');
+    fillList(inGameEl, inGame, renderInGame, 'У грі поки нікого');
+  }
+
+  function fillList(listEl, items, renderItem, emptyText) {
+    if (!items.length) {
+      const empty = document.createElement('li');
+      empty.className = 'hint player-list__empty';
+      empty.textContent = emptyText;
+      listEl.replaceChildren(empty);
+      return;
+    }
+    listEl.replaceChildren(...items.map(renderItem));
+  }
+
+  function renderWaiting(player) {
+    const row = baseRow(player);
+    row.classList.add('player-row--waiting');
+    row.querySelector('.player-row__actions').append(
+      button('Пустити', 'btn--ok', () => send('accounts:admit', { userId: player.id })),
+      button('Не пускати', 'btn--bad', () => send('accounts:reject', { userId: player.id })),
+    );
+    return row;
+  }
+
+  function renderInGame(player) {
+    const row = baseRow(player);
+    if (!player.online) row.classList.add('player-row--away');
+    row.querySelector('.player-row__actions').append(
+      button('Вигнати', 'btn--bad', () => {
+        if (window.confirm(`Вигнати «${player.login}» з гри?`)) send('accounts:kick', { userId: player.id });
+      }),
+    );
+    return row;
+  }
+
+  // Рядок: позначка Новий/Старий, логін, примітка ДМ, місце для кнопок.
+  function baseRow(player) {
     const li = document.createElement('li');
-    li.className = `player-row player-row--${player.status}`;
+    li.className = 'player-row';
+
+    const badge = document.createElement('span');
+    badge.className = `badge ${player.isNew ? 'badge--new' : 'badge--old'}`;
+    badge.textContent = player.isNew ? 'Новий' : 'Старий';
 
     const name = document.createElement('span');
     name.className = 'player-row__name';
     name.textContent = player.login;
-
-    const status = document.createElement('span');
-    status.className = 'player-row__status';
-    status.textContent = STATUS_NAMES[player.status] ?? player.status;
+    if (!player.online) name.title = 'Відійшов (допуск діє ще до 10 хв)';
 
     const actions = document.createElement('span');
     actions.className = 'player-row__actions';
-    for (const action of ACTIONS[player.status] ?? []) {
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = `btn btn--small ${action.css}`;
-      btn.textContent = action.label;
-      btn.addEventListener('click', () => runAction(action, player, btn));
-      actions.append(btn);
-    }
 
-    li.append(name, status, actions);
+    li.append(badge, name, noteInput(player), actions);
     return li;
   }
 
-  async function runAction(action, player, btn) {
-    if (action.confirm && !window.confirm(action.confirm.replace('{login}', player.login))) return;
-    btn.disabled = true;
-    const res = await request(action.event, { userId: player.id });
-    errorEl.textContent = res.ok ? '' : res.error;
-    errorEl.hidden = res.ok;
-    btn.disabled = false;
+  // Примітка: пише сам ДМ, зберігається, коли поле втрачає фокус або натиснуто Enter.
+  function noteInput(player) {
+    const input = document.createElement('input');
+    input.className = 'player-row__note';
+    input.placeholder = 'примітка...';
+    input.maxLength = NOTE_MAX;
+    input.value = player.note;
+    input.title = 'Примітку бачить тільки ДМ';
+
+    const save = () => {
+      if (input.value.trim() === player.note) return;
+      player.note = input.value.trim();
+      send('accounts:note', { userId: player.id, note: player.note });
+    };
+    input.addEventListener('blur', save);
+    input.addEventListener('keydown', (e) => { if (e.key === 'Enter') input.blur(); });
+    return input;
   }
 
-  // Сервер сам надсилає оновлений список після кожної зміни.
-  socket.on('accounts:list', render);
+  function button(label, css, onClick) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = `btn btn--small ${css}`;
+    btn.textContent = label;
+    btn.addEventListener('click', async () => {
+      btn.disabled = true;
+      await onClick();
+      btn.disabled = false;
+    });
+    return btn;
+  }
 
-  // Панель видно лише ДМ; при вході ДМ завантажуємо список.
+  // Сервер сам надсилає оновлення після кожної зміни.
+  // Поки ДМ пише примітку, не перемальовуємо список, щоб не збити введення.
+  let pending = null;
+  socket.on('accounts:lobby', (lobby) => {
+    if (root.contains(document.activeElement) && document.activeElement.matches('.player-row__note')) {
+      pending = lobby;
+      return;
+    }
+    render(lobby);
+  });
+  root.addEventListener('focusout', () => setTimeout(() => {
+    if (pending && !root.contains(document.activeElement)) {
+      render(pending);
+      pending = null;
+    }
+  }));
+
+  // Панель видно лише ДМ; при вході ДМ завантажуємо стан.
   session.onChange(async (user) => {
-    const isDm = user?.role === 'dm' && user.status === 'active';
+    const isDm = user?.role === 'dm';
     root.hidden = !isDm;
     if (!isDm) return;
-    const res = await request('accounts:list');
-    if (res.ok) render(res.players);
+    const res = await request('accounts:lobby');
+    if (res.ok) render(res);
   });
 }

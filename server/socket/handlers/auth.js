@@ -1,31 +1,53 @@
 // Події входу: auth:register, auth:login, auth:resume, auth:logout.
+import { markAway, markBack, revoke } from '../../services/admission.js';
 import { login, logout, register, resume } from '../../services/auth.js';
-import { STATUS, findUserById } from '../../services/users.js';
+import { ROLES } from '../../services/users.js';
 import { handle } from '../handle.js';
-import { attachUser, currentUser, detachUser } from '../identity.js';
-import { broadcastPlayers } from './accounts.js';
+import { attachUser, currentUser, detachUser, kickUser, onlineUserIds, toSelf } from '../identity.js';
+import { broadcastLobby } from './accounts.js';
 
 export function registerAuth(io, socket) {
-  const signIn = ({ token, user }) => {
-    attachUser(socket, findUserById(user.id), token);
-    console.log(`[auth] ${user.login} (${user.role}, ${user.status}) увійшов`);
-    return { token, user };
+  const signIn = (user, token) => {
+    attachUser(socket, user, token);
+    markBack(user.id); // повернувся протягом 10 хв — допуск зберігається
+    const self = toSelf(user);
+    console.log(`[auth] ${user.login} увійшов (${user.role}${self.admitted ? '' : ', чекає допуску'})`);
+    broadcastLobby(io);
+    return { token, user: self };
   };
 
   socket.on('auth:register', handle(({ login: l, password }) => {
-    const result = signIn(register(l, password));
-    if (result.user.status === STATUS.PENDING) broadcastPlayers(io); // ДМ бачить нову заявку
-    return result;
+    const user = register(l, password);
+    console.log(`[auth] новий акаунт: ${user.login}`);
+    return { login: user.login };
   }));
 
-  socket.on('auth:login', handle(({ login: l, password }) => signIn(login(l, password))));
-  socket.on('auth:resume', handle(({ token }) => signIn({ token, user: resume(token) })));
+  socket.on('auth:login', handle(({ login: l, password }) => {
+    const { token, user } = login(l, password);
+    return signIn(user, token);
+  }));
 
-  socket.on('auth:logout', handle(() => {
+  socket.on('auth:resume', handle(({ token }) => signIn(resume(token), token)));
+
+  // Вихід: допуск знімається, інші вкладки цього акаунта теж виходять.
+  socket.on('auth:logout', handle(async () => {
     const user = currentUser(socket);
     logout(socket.data.token);
-    if (user) console.log(`[auth] ${user.login} вийшов`);
     detachUser(socket);
+    if (user) {
+      if (user.role === ROLES.PLAYER) revoke(user.id);
+      await kickUser(io, user.id, '');
+      console.log(`[auth] ${user.login} вийшов`);
+      broadcastLobby(io);
+    }
     return {};
   }));
+
+  // Закрив вкладку / пропав інтернет: якщо це була остання вкладка — починаємо 10-хвилинний відлік.
+  socket.on('disconnect', () => {
+    const userId = socket.data.userId;
+    if (!userId) return;
+    if (!onlineUserIds(io, socket).has(userId)) markAway(userId);
+    broadcastLobby(io, socket);
+  });
 }

@@ -72,8 +72,10 @@
   border-bottom-color: var(--accent);
 }
 
-.form-error {
+.form-message {
   margin: 0;
   color: var(--bad);
   font-size: 0.9rem;
 }
+
+.form-message--info { color: var(--ok); }

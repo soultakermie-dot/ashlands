@@ -24,20 +24,10 @@ function setUser(user) {
   for (const fn of listeners) fn(currentUser);
 }
 
-async function signIn(event, payload) {
-  const res = await request(event, payload);
-  if (res.ok) {
-    notice = '';
-    writeToken(res.token);
-    setUser(res.user);
-  }
-  return res;
-}
-
 // Сервер повідомив, що акаунт змінився (наприклад, ДМ пустив у гру).
 socket.on('auth:changed', (user) => setUser(user));
 
-// Сервер викинув з гри (заявку відхилено або акаунт заблоковано).
+// Сервер повернув на екран входу (ДМ не пустив / вигнав / вихід з іншої вкладки).
 socket.on('auth:kicked', ({ reason }) => {
   notice = reason;
   writeToken(null);
@@ -47,21 +37,30 @@ socket.on('auth:kicked', ({ reason }) => {
 export const session = {
   get user() { return currentUser; },
 
-  // Повідомлення для екрана входу (чому користувача викинуло). Читається один раз.
+  // Повідомлення для екрана входу (чому користувача повернуло). Читається один раз.
   takeNotice() {
     const text = notice;
     notice = '';
     return text;
   },
 
-  // Підписатися на зміну користувача (вхід / вихід / зміна статусу).
+  // Підписатися на зміну користувача (вхід / вихід / допуск).
   onChange(fn) {
     listeners.add(fn);
     return () => listeners.delete(fn);
   },
 
-  register: (login, password) => signIn('auth:register', { login, password }),
-  login: (login, password) => signIn('auth:login', { login, password }),
+  // Реєстрація лише створює акаунт — увійти треба окремо.
+  register: (login, password) => request('auth:register', { login, password }),
+
+  async login(login, password) {
+    const res = await request('auth:login', { login, password });
+    if (res.ok) {
+      writeToken(res.token);
+      setUser(res.user);
+    }
+    return res;
+  },
 
   // Відновити вхід за збереженим токеном. Повертає true, якщо вдалося.
   async resume() {
@@ -75,11 +74,8 @@ export const session = {
       setUser(res.user);
       return true;
     }
-    // Мережева помилка — токен не чіпаємо; недійсний токен — прибираємо й пояснюємо чому.
-    if (res.error && !res.error.startsWith('Сервер не відповідає')) {
-      writeToken(null);
-      notice = res.error;
-    }
+    // Мережева помилка — токен не чіпаємо; недійсний токен — прибираємо.
+    if (res.error && !res.error.startsWith('Сервер не відповідає')) writeToken(null);
     setUser(null);
     return false;
   },

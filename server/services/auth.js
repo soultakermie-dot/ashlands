@@ -3,7 +3,7 @@ import crypto from 'node:crypto';
 import { stores } from '../storage/index.js';
 import { GameError } from './errors.js';
 import { verifyPassword } from './passwords.js';
-import { STATUS, createUser, findUserById, findUserByLogin, toPublicUser } from './users.js';
+import { createUser, findUserById, findUserByLogin } from './users.js';
 
 const LOGIN_RE = /^[\p{L}\p{N}_-]{3,20}$/u;
 const PASSWORD_MIN = 6;
@@ -21,21 +21,18 @@ function validate(login, password) {
   }
 }
 
-function assertNotBlocked(user) {
-  if (user.status === STATUS.BLOCKED) throw new GameError('Ваш акаунт заблоковано майстром');
-}
-
 function openSession(user) {
   const token = crypto.randomBytes(32).toString('hex');
   sessions()[hashToken(token)] = { userId: user.id, createdAt: new Date().toISOString() };
   stores.sessions.save();
-  return { token, user: toPublicUser(user) };
+  return { token, user };
 }
 
+// Реєстрація лише створює акаунт; увійти треба окремо.
 export function register(login, password) {
   validate(login, password);
   if (findUserByLogin(login)) throw new GameError('Такий логін уже зайнятий');
-  return openSession(createUser(login, password));
+  return createUser(login, password);
 }
 
 export function login(login, password) {
@@ -46,7 +43,6 @@ export function login(login, password) {
   if (!user || !verifyPassword(password, user.passwordHash)) {
     throw new GameError('Невірний логін або пароль');
   }
-  assertNotBlocked(user);
   return openSession(user);
 }
 
@@ -56,8 +52,7 @@ export function resume(token) {
   const session = sessions()[hashToken(token)];
   const user = session && findUserById(session.userId);
   if (!user) throw new GameError('Сесія недійсна, увійдіть знову');
-  assertNotBlocked(user);
-  return toPublicUser(user);
+  return user;
 }
 
 export function logout(token) {
@@ -66,7 +61,7 @@ export function logout(token) {
   stores.sessions.save();
 }
 
-// Скасувати всі входи акаунта (при блокуванні чи видаленні).
+// Скасувати всі входи акаунта (коли ДМ не пустив або вигнав).
 export function revokeUserSessions(userId) {
   const all = sessions();
   for (const [key, session] of Object.entries(all)) {

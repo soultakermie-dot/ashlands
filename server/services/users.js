@@ -1,12 +1,10 @@
-// Акаунти: пошук, створення, ролі, статуси.
+// Акаунти: пошук, створення, ролі, примітки ДМ.
 import crypto from 'node:crypto';
 import { stores } from '../storage/index.js';
 import { hashPassword } from './passwords.js';
 
 export const ROLES = { PLAYER: 'player', DM: 'dm' };
-
-// pending — чекає підтвердження ДМ, active — може грати, blocked — заблокований ДМ.
-export const STATUS = { PENDING: 'pending', ACTIVE: 'active', BLOCKED: 'blocked' };
+export const NOTE_MAX = 200;
 
 const list = () => stores.users.data.users;
 
@@ -29,7 +27,8 @@ export function createUser(login, password, role = ROLES.PLAYER) {
     login: login.trim(),
     passwordHash: hashPassword(password),
     role,
-    status: role === ROLES.DM ? STATUS.ACTIVE : STATUS.PENDING,
+    dmNote: '',              // примітка, яку бачить і пише тільки ДМ
+    firstAdmittedAt: null,   // коли ДМ вперше пустив у гру (null — «новий» гравець)
     createdAt: new Date().toISOString(),
   };
   list().push(user);
@@ -39,28 +38,18 @@ export function createUser(login, password, role = ROLES.PLAYER) {
 
 export function setUserRole(user, role) {
   user.role = role;
-  if (role === ROLES.DM) user.status = STATUS.ACTIVE;
   stores.users.save();
 }
 
-export function setUserStatus(user, status) {
-  user.status = status;
+export function setDmNote(user, note) {
+  user.dmNote = note.trim().slice(0, NOTE_MAX);
   stores.users.save();
 }
 
-export function deleteUser(user) {
-  const users = list();
-  users.splice(users.indexOf(user), 1);
+export function markFirstAdmission(user) {
+  if (user.firstAdmittedAt) return;
+  user.firstAdmittedAt = new Date().toISOString();
   stores.users.save();
 }
 
-// Те, що можна показувати в інтерфейсі (без хеша пароля).
-export function toPublicUser(user) {
-  return {
-    id: user.id,
-    login: user.login,
-    role: user.role,
-    status: user.status ?? STATUS.ACTIVE,
-    createdAt: user.createdAt,
-  };
-}
+export const isNewPlayer = (user) => !user.firstAdmittedAt;

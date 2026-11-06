@@ -1,6 +1,7 @@
-// Хто сидить за підключенням, і в яких «кімнатах» (групах розсилки) воно.
+// Хто сидить за підключенням, які в нього права, і в яких «кімнатах» (групах розсилки) воно.
+import { isAdmitted } from '../services/admission.js';
 import { GameError } from '../services/errors.js';
-import { ROLES, STATUS, findUserById, toPublicUser } from '../services/users.js';
+import { ROLES, findUserById } from '../services/users.js';
 
 export const DM_ROOM = 'dm';
 export const userRoom = (userId) => `user:${userId}`;
@@ -9,6 +10,14 @@ export const userRoom = (userId) => `user:${userId}`;
 export function currentUser(socket) {
   const id = socket.data.userId;
   return id ? findUserById(id) : null;
+}
+
+// Чи може акаунт бути в грі: ДМ — завжди, гравець — якщо ДМ пустив.
+export const canPlay = (user) => user.role === ROLES.DM || isAdmitted(user.id);
+
+// Те, що користувач знає сам про себе.
+export function toSelf(user) {
+  return { id: user.id, login: user.login, role: user.role, admitted: canPlay(user) };
 }
 
 export function attachUser(socket, user, token) {
@@ -26,30 +35,38 @@ export function detachUser(socket) {
   socket.data.token = null;
 }
 
+// Id усіх акаунтів, які зараз на зв'язку (крім підключення exceptSocket).
+export function onlineUserIds(io, exceptSocket = null) {
+  const ids = new Set();
+  for (const s of io.of('/').sockets.values()) {
+    if (s !== exceptSocket && s.data.userId) ids.add(s.data.userId);
+  }
+  return ids;
+}
+
 export function requireDm(socket) {
   const user = currentUser(socket);
   if (user?.role !== ROLES.DM) throw new GameError('Тільки для ДМ');
   return user;
 }
 
-export function requireActive(socket) {
+export function requireInGame(socket) {
   const user = currentUser(socket);
   if (!user) throw new GameError('Спершу увійдіть');
-  if (user.status !== STATUS.ACTIVE) throw new GameError('Акаунт ще не підтверджено майстром');
+  if (!canPlay(user)) throw new GameError('Майстер ще не пустив вас у гру');
   return user;
 }
 
 // Повідомити всі вкладки акаунта про зміну (наприклад, ДМ пустив у гру).
-export function pushUserUpdate(io, user) {
-  io.to(userRoom(user.id)).emit('auth:changed', toPublicUser(user));
+export function pushSelf(io, user) {
+  io.to(userRoom(user.id)).emit('auth:changed', toSelf(user));
 }
 
-// Викинути всі вкладки акаунта з гри з поясненням.
-export async function kickUser(io, userId, reason) {
-  const sockets = await io.in(userRoom(userId)).fetchSockets();
-  for (const s of sockets) {
+// Повернути всі вкладки акаунта на екран входу з поясненням.
+export async function kickUser(io, userId, reason, exceptSocket = null) {
+  for (const s of io.of('/').sockets.values()) {
+    if (s.data.userId !== userId || s === exceptSocket) continue;
     s.emit('auth:kicked', { reason });
-    const local = io.of('/').sockets.get(s.id);
-    if (local) detachUser(local);
+    detachUser(s);
   }
 }

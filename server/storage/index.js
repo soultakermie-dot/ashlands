@@ -9,11 +9,14 @@ export const stores = {
   // Службова інформація про сервер.
   meta: new JsonStore(file('meta'), { launches: 0, firstLaunchAt: null, lastLaunchAt: null }),
 
-  // Акаунти: логін, роль, хеш пароля.
+  // Акаунти: логін, роль, хеш пароля, примітка ДМ.
   users: new JsonStore(file('users'), { users: [] }),
 
   // Активні входи: хеш токена → акаунт (щоб не логінитись після оновлення сторінки).
   sessions: new JsonStore(file('sessions'), { sessions: {} }),
+
+  // Кого ДМ пустив у поточну гру.
+  admissions: new JsonStore(file('admissions'), { users: {} }),
 };
 
 // Дописати на диск усе незбережене (викликається при зупинці сервера).
