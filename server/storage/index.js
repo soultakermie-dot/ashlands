@@ -1,4 +1,4 @@
-// Усі сховища гри в одному місці. Нові (акаунти, персонажі, карта) додаються сюди.
+// Усі сховища гри в одному місці. Нові (персонажі, карта) додаються сюди.
 import path from 'node:path';
 import { config } from '../config.js';
 import { JsonStore } from './JsonStore.js';
@@ -8,6 +8,12 @@ const file = (name) => path.join(config.paths.data, `${name}.json`);
 export const stores = {
   // Службова інформація про сервер.
   meta: new JsonStore(file('meta'), { launches: 0, firstLaunchAt: null, lastLaunchAt: null }),
+
+  // Акаунти: логін, роль, хеш пароля.
+  users: new JsonStore(file('users'), { users: [] }),
+
+  // Активні входи: хеш токена → акаунт (щоб не логінитись після оновлення сторінки).
+  sessions: new JsonStore(file('sessions'), { sessions: {} }),
 };
 
 // Дописати на диск усе незбережене (викликається при зупинці сервера).

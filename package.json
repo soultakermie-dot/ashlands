@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "start": "node server/index.js",
-    "dev": "node --watch server/index.js"
+    "dev": "node --watch server/index.js",
+    "make-dm": "node scripts/make-dm.js"
   },
   "private": true,
   "dependencies": {

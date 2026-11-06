@@ -1,10 +1,15 @@
 /* Базові стилі: кольори, шрифти, загальний вигляд. */
 :root {
   --bg: #1a1612;
+  --panel: #241e18;
+  --border: #4a3d2e;
   --text: #d8c8a8;
+  --accent: #b8925a;
   --ok: #8fbf6a;
   --bad: #c96a5a;
 }
+
+* { box-sizing: border-box; }
 
 body {
   margin: 0;
@@ -14,20 +19,9 @@ body {
   font-family: Georgia, serif;
 }
 
-.splash {
-  min-height: 100vh;
-  display: grid;
-  place-content: center;
-  text-align: center;
-}
+[hidden] { display: none !important; }
 
-.splash h1 {
-  font-size: 4rem;
-  letter-spacing: 0.2em;
-  margin: 0;
-}
-
-.status { opacity: 0.8; margin-top: 1rem; }
+.status { opacity: 0.8; }
 .status--ok { color: var(--ok); }
 .status--bad { color: var(--bad); }
-.hint { opacity: 0.5; font-size: 0.9rem; margin-top: 0.25rem; }
+.hint { opacity: 0.5; font-size: 0.9rem; }

@@ -1,0 +1,75 @@
+/* Форми, поля, кнопки, вкладки. */
+.form {
+  display: grid;
+  gap: 1rem;
+  text-align: left;
+}
+
+.field {
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.9rem;
+}
+
+.field input {
+  padding: 0.6rem 0.75rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text);
+  font: inherit;
+}
+
+.field input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.btn {
+  padding: 0.65rem 1rem;
+  background: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  color: var(--bg);
+  font: inherit;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.btn:disabled { opacity: 0.5; cursor: wait; }
+.btn:hover:not(:disabled) { filter: brightness(1.1); }
+
+.btn--ghost {
+  background: transparent;
+  color: var(--text);
+  border-color: var(--border);
+}
+
+.tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  margin-bottom: 1.25rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.tab {
+  padding: 0.6rem;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text);
+  font: inherit;
+  opacity: 0.6;
+  cursor: pointer;
+}
+
+.tab--active {
+  opacity: 1;
+  border-bottom-color: var(--accent);
+}
+
+.form-error {
+  margin: 0;
+  color: var(--bad);
+  font-size: 0.9rem;
+}

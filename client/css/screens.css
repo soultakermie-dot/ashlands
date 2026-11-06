@@ -1,0 +1,38 @@
+/* Розкладка екранів: заставка, панелі, нижній рядок статусу. */
+.splash {
+  min-height: 100vh;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 2rem;
+  padding: 1rem;
+  text-align: center;
+}
+
+.splash h1 {
+  font-size: clamp(2.5rem, 8vw, 4rem);
+  letter-spacing: 0.2em;
+  margin: 0;
+}
+
+.panel {
+  width: min(360px, 100%);
+  padding: 1.5rem;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+.panel p { margin: 0 0 0.75rem; }
+
+.footer {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+}

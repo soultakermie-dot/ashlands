@@ -5,13 +5,58 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Ashlands</title>
   <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/forms.css">
+  <link rel="stylesheet" href="css/screens.css">
 </head>
 <body>
-  <main class="splash">
+  <!-- Поки чекаємо на сервер -->
+  <main class="splash" data-screen="loading">
     <h1>ASHLANDS</h1>
-    <p id="connection-status" class="status status--bad">Підключення до сервера...</p>
-    <p id="server-info" class="hint"></p>
   </main>
+
+  <!-- Вхід / реєстрація -->
+  <main class="splash" id="auth-screen" data-screen="auth" hidden>
+    <h1>ASHLANDS</h1>
+
+    <section class="panel">
+      <div class="tabs">
+        <button type="button" class="tab" data-mode="login">Вхід</button>
+        <button type="button" class="tab" data-mode="register">Реєстрація</button>
+      </div>
+
+      <form class="form" novalidate>
+        <label class="field">
+          <span>Логін</span>
+          <input name="login" autocomplete="username" required maxlength="20">
+        </label>
+        <label class="field">
+          <span>Пароль</span>
+          <input name="password" type="password" required maxlength="100">
+        </label>
+        <label class="field" data-field="repeat" hidden>
+          <span>Повторіть пароль</span>
+          <input name="repeat" type="password" autocomplete="new-password" maxlength="100">
+        </label>
+        <p class="form-error" hidden></p>
+        <button type="submit" class="btn">Увійти</button>
+      </form>
+    </section>
+  </main>
+
+  <!-- Головний екран (тимчасовий, до карти) -->
+  <main class="splash" data-screen="home" hidden>
+    <h1>ASHLANDS</h1>
+    <section class="panel" id="user-bar">
+      <p>Ви увійшли як <strong data-user-name></strong></p>
+      <p class="hint" data-user-role></p>
+      <button type="button" class="btn btn--ghost" data-logout>Вийти</button>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <span id="connection-status" class="status status--bad">Підключення до сервера...</span>
+    <span id="server-info" class="hint"></span>
+  </footer>
 
   <script type="module" src="js/main.js"></script>
 </body>
