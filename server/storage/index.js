@@ -1,27 +1,43 @@
-// Усі сховища гри в одному місці. Нові (персонажі, карта) додаються сюди.
+// Усі сховища гри в одному місці. Нові (персонажі, карта) додаються сюди і в supabase/tables.js.
+// Якщо в .env є ключі Supabase — дані йдуть у Supabase, інакше — у JSON-файли в папці data/.
 import path from 'node:path';
 import { config } from '../config.js';
 import { JsonStore } from './JsonStore.js';
+import { SupabaseStore } from './supabase/SupabaseStore.js';
+import { createSupabaseClient } from './supabase/client.js';
+import { tables } from './supabase/tables.js';
 
-const file = (name) => path.join(config.paths.data, `${name}.json`);
+export const storageBackend = config.supabase.enabled ? 'supabase' : 'json';
+
+const client = config.supabase.enabled ? createSupabaseClient() : null;
+
+function makeStore(name, dependsOn = []) {
+  const spec = tables[name];
+  return client
+    ? new SupabaseStore(client, spec, dependsOn)
+    : new JsonStore(path.join(config.paths.data, `${name}.json`), spec.defaults);
+}
+
+const users = makeStore('users');
 
 export const stores = {
-  // Службова інформація про сервер.
-  meta: new JsonStore(file('meta'), { launches: 0, firstLaunchAt: null, lastLaunchAt: null }),
-
-  // Акаунти: логін, роль, хеш пароля, примітка ДМ.
-  users: new JsonStore(file('users'), { users: [] }),
-
-  // Активні входи: хеш токена → акаунт (щоб не логінитись після оновлення сторінки).
-  sessions: new JsonStore(file('sessions'), { sessions: {} }),
-
-  // Кого ДМ пустив у поточну гру.
-  admissions: new JsonStore(file('admissions'), { users: {} }),
+  meta: makeStore('meta'),               // службова інформація
+  users,                                 // акаунти: логін, роль, хеш пароля, примітка ДМ
+  sessions: makeStore('sessions', [users]),     // активні входи
+  admissions: makeStore('admissions', [users]), // кого ДМ пустив у гру
 };
 
-// Дописати на диск усе незбережене (викликається при зупинці сервера).
-export function flushAll() {
+// Завантажуємо всі дані перед стартом сервера.
+try {
+  await Promise.all(Object.values(stores).map((s) => s.load()));
+} catch (err) {
+  console.error(`\n[storage] Не вдалося завантажити дані (${storageBackend}):\n  ${err.message}\n`);
+  process.exit(1);
+}
+
+// Дописати все незбережене (викликається при зупинці сервера).
+export async function flushAll() {
   for (const store of Object.values(stores)) {
-    if (store.hasPendingSave()) store.saveNow();
+    if (store.hasPendingSave()) await store.saveNow();
   }
 }

@@ -37,5 +37,5 @@ if (!user) {
 
 const role = flag === '--player' ? ROLES.PLAYER : ROLES.DM;
 setUserRole(user, role);
-stores.users.saveNow();
+await stores.users.saveNow();
 console.log(`Готово: «${user.login}» тепер ${role === ROLES.DM ? 'ДМ' : 'гравець'}.`);

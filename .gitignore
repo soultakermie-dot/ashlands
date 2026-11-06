@@ -7,6 +7,7 @@ data/
 # Секрети
 .env
 .env.*
+!.env.example
 
 # Збірки
 dist/

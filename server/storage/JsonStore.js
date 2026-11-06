@@ -1,4 +1,4 @@
-// Одне сховище = один JSON-файл у папці data/.
+// Сховище у JSON-файлі (для роботи без Supabase).
 // Дані тримаються в пам'яті, а на диск пишуться трохи згодом (щоб не писати на кожну дрібницю).
 // Запис безпечний: спершу у тимчасовий файл, потім заміна, тож при збої файл не зіпсується.
 import fs from 'node:fs';
@@ -11,7 +11,22 @@ export class JsonStore {
     this.filePath = filePath;
     this.defaults = defaults;
     this.timer = null;
-    this.data = this.#load();
+    this.data = structuredClone(defaults);
+  }
+
+  async load() {
+    fs.mkdirSync(path.dirname(this.filePath), { recursive: true });
+    if (!fs.existsSync(this.filePath)) return;
+
+    try {
+      const parsed = JSON.parse(fs.readFileSync(this.filePath, 'utf8'));
+      this.data = { ...structuredClone(this.defaults), ...parsed };
+    } catch (err) {
+      // Файл пошкоджений: відкладаємо його вбік, щоб нічого не втратити, і стартуємо з чистого.
+      const backup = `${this.filePath}.broken-${Date.now()}`;
+      fs.renameSync(this.filePath, backup);
+      console.error(`[storage] Пошкоджений файл ${this.filePath}, збережено копію: ${backup}`, err.message);
+    }
   }
 
   // Позначити, що дані змінились: збереження відбудеться автоматично.
@@ -21,7 +36,7 @@ export class JsonStore {
   }
 
   // Записати на диск негайно.
-  saveNow() {
+  async saveNow() {
     clearTimeout(this.timer);
     this.timer = null;
     const tmp = `${this.filePath}.tmp`;
@@ -31,24 +46,5 @@ export class JsonStore {
 
   hasPendingSave() {
     return this.timer !== null;
-  }
-
-  #load() {
-    fs.mkdirSync(path.dirname(this.filePath), { recursive: true });
-
-    if (!fs.existsSync(this.filePath)) {
-      return structuredClone(this.defaults);
-    }
-
-    try {
-      const parsed = JSON.parse(fs.readFileSync(this.filePath, 'utf8'));
-      return { ...structuredClone(this.defaults), ...parsed };
-    } catch (err) {
-      // Файл пошкоджений: відкладаємо його вбік, щоб нічого не втратити, і стартуємо з чистого.
-      const backup = `${this.filePath}.broken-${Date.now()}`;
-      fs.renameSync(this.filePath, backup);
-      console.error(`[storage] Пошкоджений файл ${this.filePath}, збережено копію: ${backup}`, err.message);
-      return structuredClone(this.defaults);
-    }
   }
 }

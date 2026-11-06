@@ -3,7 +3,7 @@ import { createServer } from 'node:http';
 import { config } from './config.js';
 import { createApp } from './http/app.js';
 import { createSocketServer } from './socket/index.js';
-import { flushAll } from './storage/index.js';
+import { flushAll, storageBackend } from './storage/index.js';
 import { recordLaunch } from './services/meta.js';
 import { markAllAwayOnStartup } from './services/admission.js';
 
@@ -14,13 +14,17 @@ const httpServer = createServer(createApp());
 createSocketServer(httpServer);
 
 httpServer.listen(config.port, () => {
-  console.log(`Ashlands запущено: http://localhost:${config.port}`);
+  const where = storageBackend === 'supabase' ? 'Supabase' : 'файли в папці data/';
+  console.log(`Ashlands запущено: http://localhost:${config.port} (дані: ${where})`);
 });
 
-// Перед зупинкою дописуємо всі незбережені дані на диск.
-function shutdown(signal) {
+// Перед зупинкою дописуємо всі незбережені дані.
+let stopping = false;
+async function shutdown(signal) {
+  if (stopping) return;
+  stopping = true;
   console.log(`Зупинка (${signal}), зберігаю дані...`);
-  flushAll();
+  await flushAll();
   process.exit(0);
 }
 process.on('SIGINT', () => shutdown('SIGINT'));
