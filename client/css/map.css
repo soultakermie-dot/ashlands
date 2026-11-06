@@ -30,6 +30,7 @@
 .map__layer {
   position: absolute;
   inset: 0;
+  pointer-events: none; /* шар прозорий для мишки (щоб клікались дороги під ним), мітки — ні */
 }
 
 /* Мітка локації: точка + підпис; розмір на екрані не залежить від наближення */
@@ -45,6 +46,7 @@
   color: var(--text);
   font: inherit;
   cursor: pointer;
+  pointer-events: auto;
   transform: translate(-50%, -9px) scale(var(--inv-scale));
   transform-origin: 50% 9px;
 }

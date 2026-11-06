@@ -18,6 +18,8 @@ import { initCharacterDetails } from './ui/characterDetails.js';
 import { initPlayersPanel } from './ui/playersPanel.js';
 import { initAllCharactersPanel } from './ui/allCharactersPanel.js';
 import { initItemLibraryPanel } from './ui/itemLibraryPanel.js';
+import { initEditorToolbar } from './ui/editorToolbar.js';
+import { initLocationEditor } from './ui/locationEditor.js';
 
 const gameScreen = document.getElementById('game-screen');
 
@@ -33,6 +35,8 @@ initCharacterDetails(gameScreen.querySelector('[data-modal]'));
 initPlayersPanel(document.getElementById('players-panel'));
 initAllCharactersPanel(document.getElementById('all-characters-panel'));
 initItemLibraryPanel(document.getElementById('item-library-panel'));
+initEditorToolbar(gameScreen.querySelector('[data-mode-switch]'), gameScreen.querySelector('[data-editor-toolbar]'));
+initLocationEditor(gameScreen.querySelector('[data-location-editor]'));
 initActiveCharacterBadge(gameScreen.querySelector('[data-topbar-character]'));
 initAccountsPanel(document.getElementById('accounts-panel'));
 initCharactersPanel(document.getElementById('characters-panel'));

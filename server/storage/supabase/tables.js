@@ -149,6 +149,63 @@ export const tables = {
     }),
   },
 
+  locations: {
+    table: 'locations',
+    key: 'id',
+    defaults: { locations: [] },
+    toRows: ({ locations }) => locations.map((l) => ({
+      id: l.id,
+      type: l.type,
+      name: l.name,
+      description: l.description ?? '',
+      x: l.x,
+      y: l.y,
+      created_at: l.createdAt,
+    })),
+    fromRows: (rows) => ({
+      locations: rows.map((r) => ({
+        id: r.id,
+        type: r.type,
+        name: r.name,
+        description: r.description,
+        x: r.x,
+        y: r.y,
+        createdAt: r.created_at,
+      })),
+    }),
+  },
+
+  roads: {
+    table: 'roads',
+    key: 'id',
+    defaults: { roads: [] },
+    toRows: ({ roads }) => roads.map((r) => ({
+      id: r.id,
+      from_id: r.fromId,
+      to_id: r.toId,
+      points: r.points ?? [],
+      created_at: r.createdAt,
+    })),
+    fromRows: (rows) => ({
+      roads: rows.map((r) => ({
+        id: r.id,
+        fromId: r.from_id,
+        toId: r.to_id,
+        points: r.points ?? [],
+        createdAt: r.created_at,
+      })),
+    }),
+  },
+
+  // Налаштування світу (стартова точка тощо) — один рядок app_meta з ключем 'world'.
+  worldSettings: {
+    table: 'app_meta',
+    key: 'key',
+    defaults: { spawn: null, seeded: false },
+    toRows: (data) => [{ key: 'world', value: data }],
+    fromRows: (rows) => ({ spawn: null, seeded: false, ...(rows.find((r) => r.key === 'world')?.value ?? {}) }),
+  },
+
   // Службова інформація — один рядок з ключем 'server'.
   meta: {
     table: 'app_meta',

@@ -6,9 +6,11 @@ import { createSocketServer } from './socket/index.js';
 import { flushAll, storageBackend } from './storage/index.js';
 import { recordLaunch } from './services/meta.js';
 import { markAllAwayOnStartup } from './services/admission.js';
+import { seedWorldOnce } from './services/world.js';
 
 recordLaunch();
 markAllAwayOnStartup(); // після перезапуску в гравців є 10 хв, щоб повернутися без нового допуску
+seedWorldOnce();        // за чистої бази — тестові міста й дороги
 
 const httpServer = createServer(createApp());
 createSocketServer(httpServer);
