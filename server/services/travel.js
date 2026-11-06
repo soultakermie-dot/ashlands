@@ -12,6 +12,7 @@ import { dist, lengthOf, pointAt, project, splitAt } from './geometry.js';
 import { ensurePlaced } from './placement.js';
 import { findLocation } from './world.js';
 import { freezeForGamePause, unfreezeAfterGamePause } from './clock.js';
+import { pauseTimer, resumeTimer } from './timers.js';
 
 const AT_LOCATION_PX = 20;   // ближче за це — персонаж «у місті»
 
@@ -165,6 +166,7 @@ function assertNotPaused() {
  */
 export function startTravel(character, destinationId, now = Date.now(), options = {}) {
   assertNotPaused();
+  if (character.dungeon) throw new GameError(`«${character.name}» зараз у катакомбах`);
   const from = currentPosition(character, now);
   const dest = findLocation(destinationId);
   if (!dest) throw new GameError('Локацію не знайдено');
@@ -252,7 +254,11 @@ export function pauseGame(now = Date.now()) {
   freezeForGamePause(now);
   settings().gamePaused = true;
   stores.worldSettings.save();
-  for (const c of stores.characters.data.characters) pauseCharacterTravel(c, 'game', now);
+  for (const c of stores.characters.data.characters) {
+    pauseCharacterTravel(c, 'game', now);
+    pauseTimer(c.dungeon, 'game', now);
+  }
+  stores.characters.save();
 }
 
 export function resumeGame(now = Date.now()) {
@@ -260,7 +266,11 @@ export function resumeGame(now = Date.now()) {
   settings().gamePaused = false;
   unfreezeAfterGamePause(now);
   stores.worldSettings.save();
-  for (const c of stores.characters.data.characters) resumeCharacterTravel(c, 'game', now);
+  for (const c of stores.characters.data.characters) {
+    resumeCharacterTravel(c, 'game', now);
+    resumeTimer(c.dungeon, 'game', now);
+  }
+  stores.characters.save();
 }
 
 // Скасувати подорож: персонаж лишається там, де зараз.
@@ -328,6 +338,7 @@ export function playerTravel(user, destinationId, now = Date.now()) {
   if (!user.activeCharacterId) throw new GameError('Спершу виберіть персонажа');
   const c = getCharacter(user.activeCharacterId);
   if (c.status !== CHARACTER_STATUS.APPROVED) throw new GameError('Персонаж ще не підтверджений');
+  if (c.dungeon) throw new GameError('Ви в катакомбах — звідси так просто не вийти');
   const dest = findLocation(destinationId);
   if (!dest) throw new GameError('Локацію не знайдено');
   const here = currentPosition(c, now);

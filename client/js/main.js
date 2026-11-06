@@ -30,10 +30,25 @@ import { initDicePanel } from './ui/dicePanel.js';
 import { initNotesPanel } from './ui/notesPanel.js';
 import { initClockDisplay } from './ui/clockDisplay.js';
 import { initClockControl } from './ui/clockControl.js';
+import { initDungeonOverlay } from './ui/dungeonOverlay.js';
+import { initDungeonsDmPanel } from './ui/dungeonsDmPanel.js';
+import { dungeonsState } from './state/dungeons.js';
 import { groupsState } from './state/groups.js';
 import { setBadge } from './ui/sidebarNav.js';
 
 const gameScreen = document.getElementById('game-screen');
+
+// Повідомлення над картою (kind: 'error' — червоне, 'info' — зелене); зникає саме.
+let mapMessageTimer = 0;
+function showMapMessage(text, kind = 'error') {
+  const m = gameScreen.querySelector('[data-map-message]');
+  m.textContent = text;
+  m.hidden = !text;
+  m.classList.toggle('map-message--info', kind === 'info');
+  clearTimeout(mapMessageTimer);
+  if (text) mapMessageTimer = setTimeout(() => { m.hidden = true; }, 5000);
+}
+
 
 initConnectionStatus(socket, document.getElementById('connection-status'));
 initServerInfo(socket, document.getElementById('server-info'));
@@ -57,12 +72,12 @@ initGroupsDmPanel(gameScreen.querySelector('[data-groups-dm-panel]'));
 initDicePanel(gameScreen.querySelector('[data-dice-panel]'), gameScreen.querySelector('[data-dice-toast]'));
 initNotesPanel(gameScreen.querySelector('[data-notes-panel]'));
 initClockDisplay(gameScreen.querySelector('[data-clock]'), gameScreen.querySelector('[data-map-night]'));
-initClockControl(gameScreen.querySelector('[data-clock-control]'), {
-  onMessage: (text) => { const m = gameScreen.querySelector('[data-map-message]'); m.textContent = text; m.hidden = !text; },
-});
-initGamePauseControl(gameScreen.querySelector('[data-game-pause]'), {
-  onMessage: (text) => { const m = gameScreen.querySelector('[data-map-message]'); m.textContent = text; m.hidden = !text; },
-});
+initClockControl(gameScreen.querySelector('[data-clock-control]'), { onMessage: showMapMessage });
+initGamePauseControl(gameScreen.querySelector('[data-game-pause]'), { onMessage: showMapMessage });
+initDungeonOverlay(gameScreen.querySelector('[data-dungeon-screen]'), gameScreen.querySelector('[data-dungeon-notice]'));
+initDungeonsDmPanel(gameScreen.querySelector('[data-dungeons-dm-panel]'), gameScreen.querySelector('[data-dungeon-enter]'), { onMessage: showMapMessage });
+// ДМ: скільки загонів зараз у катакомбах.
+dungeonsState.onChange(({ runs }) => setBadge('dungeons', runs.length));
 // ДМ: лічильник груп, де нічия в голосуванні (треба обрати лідера).
 groupsState.onChange(({ all }) => setBadge('groups', all.filter((g) => g.vote?.stage === 'tie').length));
 initActiveCharacterBadge(gameScreen.querySelector('[data-topbar-character]'));

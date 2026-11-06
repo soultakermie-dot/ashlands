@@ -51,7 +51,7 @@ export function initEditorToolbar(switchRoot, toolbar) {
   }
 
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && editor.tool !== 'select') editor.setTool('select');
+    if (e.key === 'Escape' && editor.tool !== 'select') editor.setTool('select'); // (вибір точки виходу теж скасовується)
   });
 
   editor.onChange(render);

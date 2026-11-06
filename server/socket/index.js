@@ -17,11 +17,12 @@ import { registerGroups, startGroupsTicker } from './handlers/groups.js';
 import { registerDice } from './handlers/dice.js';
 import { registerNotes } from './handlers/notes.js';
 import { registerClock } from './handlers/clock.js';
+import { registerDungeons, startDungeonTicker } from './handlers/dungeons.js';
 
 const handlers = [
   registerPresence, registerServerInfo, registerAuth, registerAccounts, registerCharacters, registerWorld,
   registerTokens, registerPlayers, registerSheet, registerItems, registerInventory, registerTravel,
-  registerGroups, registerDice, registerNotes, registerClock,
+  registerGroups, registerDice, registerNotes, registerClock, registerDungeons,
 ];
 
 // Найбільше повідомлення від клієнта (з запасом для аватарки до 512 КБ).
@@ -37,5 +38,6 @@ export function createSocketServer(httpServer) {
   startAwayExpiry(io);
   startTravelTicker(io);
   startGroupsTicker(io);
+  startDungeonTicker(io);
   return io;
 }

@@ -6,6 +6,8 @@ import { buildTokens } from '../services/tokens.js';
 import { isApprovalRequired, isGamePaused, listRequests } from '../services/travel.js';
 import { groupOf, inviteFor, listGroups, toPublicGroup } from '../services/groups.js';
 import { findUserById } from '../services/users.js';
+import { findCharacter as findChar } from '../services/characters.js';
+import { dungeonStateOf, listRuns } from '../services/dungeons.js';
 import { DM_ROOM, GAME_ROOM, onlineUserIds, userRoom } from './identity.js';
 
 const BATCH_MS = 50;
@@ -30,11 +32,13 @@ export function scheduleGameUpdate(io) {
       if (!charId) continue;
       const g = groupOf(charId);
       io.to(userRoom(userId)).emit('groups:state', { group: g ? toPublicGroup(g) : null, invite: inviteFor(charId, now) });
+      io.to(userRoom(userId)).emit('dungeon:state', dungeonStateOf(findChar(charId)));
     }
 
     io.to(DM_ROOM).emit('tokens:update', { tokens: buildTokens(online, { forDm: true }, now), now });
     io.to(DM_ROOM).emit('characters:all', listAllCharacters());
     io.to(DM_ROOM).emit('travel:requests', listRequests());
     io.to(DM_ROOM).emit('groups:all', listGroups({ forDm: true }));
+    io.to(DM_ROOM).emit('dungeon:runs', listRuns(now));
   }, BATCH_MS);
 }

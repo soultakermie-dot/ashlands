@@ -20,7 +20,7 @@ export function buildTokens(onlineIds, { forDm = false } = {}, now = Date.now())
   for (const user of listUsers()) {
     if (user.role !== ROLES.PLAYER || !user.activeCharacterId) continue;
     const character = findCharacter(user.activeCharacterId);
-    if (!character || character.status !== CHARACTER_STATUS.APPROVED) continue;
+    if (!character || character.status !== CHARACTER_STATUS.APPROVED || character.dungeon) continue;
     ensurePlaced(character);
 
     const { id, name, avatarUrl } = toPublicCharacter(character);

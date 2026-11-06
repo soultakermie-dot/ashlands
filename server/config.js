@@ -35,6 +35,17 @@ export const config = {
     // Для тестів: CLOCK_MS_PER_MINUTE=10 — доба за 14 секунд.
     realMsPerGameMinute: Number(process.env.CLOCK_MS_PER_MINUTE) || 2500,
   },
+  dungeons: {
+    // Скільки триває прохід катакомб (випадково між мін і макс).
+    minMs: 5 * MINUTE,
+    maxMs: 15 * MINUTE,
+    // Для тестів: DUNGEON_TIME_SCALE=0.01 — у 100 разів швидше.
+    timeScale: Number(process.env.DUNGEON_TIME_SCALE) || 1,
+    // Вихід «випадково біля підземелля»: у колі такого радіуса (пікселі карти).
+    exitRadiusPx: 120,
+    // Розкид за замовчуванням (пікселі карти).
+    scatterRadiusPx: 200,
+  },
   groups: {
     // Запросити в групу можна того, хто ближче за це.
     inviteRadiusM: 300,

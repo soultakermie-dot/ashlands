@@ -9,7 +9,10 @@ import { currentPosition } from './travel.js';
 import { TRANSFER_RADIUS_M, distanceMeters } from './world.js';
 
 // Відстань між персонажами там, де вони зараз (навіть посеред дороги).
-const distanceNow = (a, b) => distanceMeters(currentPosition(a), currentPosition(b));
+// Хто в катакомбах — «поруч» лише зі своїм загоном у тих самих катакомбах.
+const distanceNow = (a, b) => ((a.dungeon?.runId ?? null) !== (b.dungeon?.runId ?? null)
+  ? null
+  : distanceMeters(currentPosition(a), currentPosition(b)));
 
 const GOLD_MAX = 1_000_000_000;
 const QTY_MAX = 100_000;

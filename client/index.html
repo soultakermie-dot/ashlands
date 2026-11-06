@@ -21,6 +21,7 @@
   <link rel="stylesheet" href="css/dice.css">
   <link rel="stylesheet" href="css/notes.css">
   <link rel="stylesheet" href="css/clock.css">
+  <link rel="stylesheet" href="css/dungeons.css">
 </head>
 <body>
   <!-- Поки чекаємо на сервер -->
@@ -86,12 +87,16 @@
       </div>
     </div>
 
+    <!-- Гравець у катакомбах: замість карти -->
+    <div class="dungeon-screen" data-dungeon-screen hidden></div>
+
     <!-- Рядки вгорі карти: подорож, група, повідомлення -->
     <div class="banners">
       <div class="travel-status" data-travel-status hidden></div>
       <div class="travel-status group-banner" data-group-banner hidden></div>
       <p class="map-message" data-map-message hidden></p>
       <div class="travel-status dice-toast" data-dice-toast hidden></div>
+      <div class="travel-status travel-status--arrived" data-dungeon-notice hidden></div>
     </div>
     <div class="location-card token-card" data-token-card hidden></div>
 
@@ -153,6 +158,7 @@
           <button type="button" class="nav-btn" data-open-view="new-characters">🧙 <span>Нові персонажі</span><b class="nav-badge" data-badge="new-characters" hidden></b></button>
           <button type="button" class="nav-btn" data-open-view="all-characters">🗂 <span>Усі персонажі</span></button>
           <button type="button" class="nav-btn" data-open-view="groups">⚑ <span>Групи</span><b class="nav-badge" data-badge="groups" hidden></b></button>
+          <button type="button" class="nav-btn" data-open-view="dungeons">💀 <span>Катакомби</span><b class="nav-badge nav-badge--info" data-badge="dungeons" hidden></b></button>
           <button type="button" class="nav-btn" data-open-view="items">🧪 <span>Предмети</span></button>
           <button type="button" class="nav-btn" data-open-view="notes">📝 <span>Нотатки</span></button>
         </div>
@@ -219,6 +225,14 @@
 
       <div data-view="groups" data-title="⚑ Групи" hidden>
         <section data-groups-dm-panel></section>
+      </div>
+
+      <div data-view="dungeons" data-title="💀 Катакомби" hidden>
+        <section data-dungeons-dm-panel></section>
+      </div>
+
+      <div data-view="dungeon-enter" data-title="🕯 Завести в підземелля" hidden>
+        <section data-dungeon-enter></section>
       </div>
 
       <div data-view="notes" data-title="📝 Нотатки ДМ" hidden>

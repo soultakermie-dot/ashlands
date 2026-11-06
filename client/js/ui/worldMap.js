@@ -13,6 +13,8 @@ import { worldState } from '../state/world.js';
 import { openLocationEditor } from './locationEditor.js';
 import { initTokenCard } from './tokenCard.js';
 import { travelState } from '../state/travel.js';
+import { dungeonsState } from '../state/dungeons.js';
+import { openDungeonEnter } from './dungeonsDmPanel.js';
 
 export function initWorldMap(root) {
   const mapEl = root.querySelector('[data-map]');
@@ -50,6 +52,7 @@ export function initWorldMap(root) {
     dmActions: (loc) => (isDm()
       ? [
         button('✏ Змінити', 'btn--ghost', () => openLocationEditor(loc.id)),
+        loc.type === 'dungeon' ? button('🕯 Завести в підземелля', 'btn--ok', () => openDungeonEnter(loc)) : null,
         loc.type === 'dungeon'
           ? button('💀 Прибрати', 'btn--bad', async () => {
             if (!window.confirm(`Прибрати підземелля «${loc.name}» з карти?`)) return;
@@ -149,6 +152,10 @@ export function initWorldMap(root) {
       act(worldState.setSpawn(x, y), 'Стартову точку встановлено');
       return;
     }
+    if (isDm() && tool === 'exitPoint') {
+      const r = await act(dungeonsState.finishPicking(Math.round(x), Math.round(y)), 'Точку виходу з катакомб вибрано');
+      return;
+    }
     if (isDm() && !creative() && tool === 'dungeon') {
       editor.setTool('select');
       const r = await act(worldState.placeDungeon(x, y), 'Підземелля з\'явилося на карті');
@@ -186,7 +193,7 @@ export function initWorldMap(root) {
     locations.render(world.locations, showSpawn ? world.spawn : null);
     roads.render(world.roads, world.locations);
     if (roads.selectedId && !creative()) { roads.select(null); roadCard.hidden = true; }
-    mapEl.classList.toggle('map--placing', ['city', 'spawn', 'dungeon'].includes(editor.tool) && isDm());
+    mapEl.classList.toggle('map--placing', ['city', 'spawn', 'dungeon', 'exitPoint'].includes(editor.tool) && isDm());
   }
 
   worldState.onChange((world) => {
