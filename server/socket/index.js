@@ -2,8 +2,9 @@
 // Кожна тема (онлайн, акаунти, персонажі...) — окремий файл у handlers/.
 import { Server } from 'socket.io';
 import { registerPresence } from './handlers/presence.js';
+import { registerServerInfo } from './handlers/serverInfo.js';
 
-const handlers = [registerPresence];
+const handlers = [registerPresence, registerServerInfo];
 
 export function createSocketServer(httpServer) {
   const io = new Server(httpServer);

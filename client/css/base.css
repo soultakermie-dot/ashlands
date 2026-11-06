@@ -30,3 +30,4 @@ body {
 .status { opacity: 0.8; margin-top: 1rem; }
 .status--ok { color: var(--ok); }
 .status--bad { color: var(--bad); }
+.hint { opacity: 0.5; font-size: 0.9rem; margin-top: 0.25rem; }
