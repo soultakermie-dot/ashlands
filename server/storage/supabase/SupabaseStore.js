@@ -60,10 +60,15 @@ export class SupabaseStore {
     return map;
   }
 
+  // Дочекатися, поки все, що вже змінено, реально запишеться в базу.
+  flush() {
+    return this.hasPendingSave() ? this.saveNow() : this.chain;
+  }
+
   async #sync() {
-    for (const dep of this.dependsOn) {
-      if (dep.hasPendingSave()) await dep.saveNow();
-    }
+    // Спершу записуємо те, на що посилаємося (наприклад, акаунт раніше за його допуск),
+    // включно із записом, який уже в дорозі.
+    for (const dep of this.dependsOn) await dep.flush();
 
     const current = this.#snapshot();
     const upserts = [...current].filter(([k, json]) => this.synced.get(k) !== json).map(([, json]) => JSON.parse(json));
