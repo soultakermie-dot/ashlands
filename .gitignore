@@ -1,0 +1,18 @@
+# Залежності
+node_modules/
+
+# Дані гри (акаунти, персонажі, збереження) — не викладаємо в git
+data/
+
+# Секрети
+.env
+.env.*
+
+# Збірки
+dist/
+src-tauri/target/
+
+# Системне
+.DS_Store
+Thumbs.db
+*.log
