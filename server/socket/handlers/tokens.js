@@ -9,7 +9,8 @@ export function registerTokens(io, socket) {
   socket.on('tokens:list', handle(() => {
     requireInGame(socket);
     const forDm = currentUser(socket).role === ROLES.DM;
-    return { tokens: buildTokens(onlineUserIds(io), { forDm }) };
+    const now = Date.now();
+    return { tokens: buildTokens(onlineUserIds(io), { forDm }, now), now };
   }));
 
   socket.on('tokens:move', handle(({ characterId, x, y }) => {

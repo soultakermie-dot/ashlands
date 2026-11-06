@@ -1,0 +1,83 @@
+/* Подорожі: маршрути на карті, статус гравця, картка жетона, панель ДМ. */
+
+/* --- Маршрут (решта шляху) --- */
+.map__routes {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.route {
+  fill: none;
+  stroke: var(--accent);
+  /* товщина й пунктир у пікселях екрана за будь-якого зуму */
+  stroke-width: calc(5px * var(--inv-scale));
+  stroke-dasharray: calc(10px * var(--inv-scale)) calc(8px * var(--inv-scale));
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.9;
+  filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.9));
+}
+
+.route--mine { stroke: var(--ok); stroke-width: calc(6px * var(--inv-scale)); opacity: 1; }
+.route--paused { stroke-dasharray: calc(4px * var(--inv-scale)) calc(8px * var(--inv-scale)); opacity: 0.6; }
+
+/* --- Жетон у дорозі --- */
+.token--traveling { transition: opacity 0.3s; } /* рух — щокадру, без затримки */
+.token--paused .avatar { border-style: dashed; }
+
+/* --- Статус гравця зверху карти --- */
+.travel-status {
+  position: absolute;
+  top: 4rem;
+  left: 50%;
+  z-index: 12;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  transform: translateX(-50%);
+  padding: 0.4rem 0.5rem 0.4rem 0.9rem;
+  background: rgba(36, 30, 24, 0.95);
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  font-size: 0.95rem;
+  white-space: nowrap;
+}
+
+.travel-status--arrived { border-color: var(--ok); color: var(--ok); padding-right: 0.9rem; }
+
+/* Повідомлення над картою — нижче за статус подорожі, щоб не накладались */
+.map-message { top: 7rem; }
+
+/* --- Картка жетона --- */
+.token-card__status { margin: 0.4rem 0 0; }
+.token-card__actions { flex-wrap: wrap; }
+.token-card__send { display: inline-flex; gap: 0.4rem; align-items: center; }
+.token-card__send select { max-width: 12rem; }
+
+/* --- Панель ДМ: дозвіл і запити --- */
+.travel-dm {
+  margin-top: 0.6rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--border);
+  max-width: 260px;
+  font-size: 0.85rem;
+}
+
+.travel-dm__toggle { display: flex; gap: 0.4rem; align-items: center; cursor: pointer; }
+.travel-dm__requests { list-style: none; margin: 0.5rem 0 0; padding: 0; display: grid; gap: 0.35rem; }
+
+.travel-request {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+}
+
+.travel-request__actions { display: flex; gap: 0.25rem; flex: none; }

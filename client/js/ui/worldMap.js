@@ -11,6 +11,8 @@ import { session } from '../state/session.js';
 import { tokensState } from '../state/tokens.js';
 import { worldState } from '../state/world.js';
 import { openLocationEditor } from './locationEditor.js';
+import { initTokenCard } from './tokenCard.js';
+import { travelState } from '../state/travel.js';
 
 export function initWorldMap(root) {
   const mapEl = root.querySelector('[data-map]');
@@ -56,8 +58,20 @@ export function initWorldMap(root) {
           })
           : null,
       ].filter(Boolean)
-      : []),
+      : travelButtons(loc)),
   });
+
+  // Гравець: піти до локації (або попросити ДМ, якщо рух лише з дозволом).
+  function travelButtons(loc) {
+    if (!characters.active || characters.active.status !== 'approved') {
+      return [button('🚶 Йти сюди', 'btn--ghost', () => showMessage('Спершу виберіть персонажа в «🧙 Персонажі»'))];
+    }
+    const label = travelState.approvalRequired ? '🙋 Попросити дозволу йти сюди' : '🚶 Йти сюди';
+    return [button(label, 'btn--ok', async () => {
+      const r = await act(travelState.go(loc.id));
+      if (r.ok) card.hide();
+    })];
+  }
 
   // ---------- Шари ----------
   const roads = new RoadLayer(root.querySelector('[data-map-roads]'), root.querySelector('[data-map-handles]'), view, {
@@ -79,9 +93,13 @@ export function initWorldMap(root) {
     onClick: (loc) => onLocationClick(loc),
   });
 
-  const tokens = new TokenLayer(root.querySelector('[data-map-tokens]'), view, {
+  const tokenCard = initTokenCard(root.querySelector('[data-token-card]'), { onMessage: (text) => showMessage(text) });
+
+  const tokens = new TokenLayer(root.querySelector('[data-map-tokens]'), root.querySelector('[data-map-routes]'), view, {
     canDrag: () => isDm() && !creative(),
     isMine: (token) => token.characterId === characters.active?.id,
+    showRoute: (token) => isDm() || token.characterId === characters.active?.id,
+    onClick: (token) => { card.hide(); tokenCard.show(token); },
     onMove: async (token, x, y) => (await act(tokensState.move(token.characterId, x, y))).ok,
   });
 
@@ -114,6 +132,7 @@ export function initWorldMap(root) {
       openLocationEditor(loc.id);
       return;
     }
+    tokenCard.hide();
     locations.select(loc.id);
     card.show(loc, () => locations.select(null));
   }
@@ -140,6 +159,7 @@ export function initWorldMap(root) {
     roadStartId = null;
     locations.select(null);
     card.hide();
+    tokenCard.hide();
     roads.select(null);
     roadCard.hidden = true;
   });
@@ -172,6 +192,7 @@ export function initWorldMap(root) {
   worldState.onChange((world) => {
     view.setMap(world.map);
     roads.setSize(world.map.width, world.map.height);
+    tokens.setSize(world.map.width, world.map.height);
     renderWorld();
     tokens.render(tokensState.list);
     // Відкрита картка локації оновлюється (або закривається, якщо локацію прибрали).
@@ -190,5 +211,9 @@ export function initWorldMap(root) {
   });
 
   tokensState.onChange((list) => tokens.render(list));
+  travelState.onChange(() => {
+    const loc = card.open && locations.selectedId && worldState.location(locations.selectedId);
+    if (loc) card.show(loc, () => locations.select(null));
+  });
   characters.onChange(() => tokens.render(tokensState.list));
 }

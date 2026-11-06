@@ -118,3 +118,6 @@ create table if not exists public.roads (
   created_at timestamptz not null default now()
 );
 alter table public.roads enable row level security;
+
+-- ===== 010_travel.sql =====
+alter table public.characters add column if not exists travel jsonb;

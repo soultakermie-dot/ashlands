@@ -7,6 +7,7 @@ import {
   getWorld, setSpawnPoint, updateLocation, updateRoad,
 } from '../../services/world.js';
 import { ROLES } from '../../services/users.js';
+import { isApprovalRequired } from '../../services/travel.js';
 import { handle } from '../handle.js';
 import { DM_ROOM, GAME_ROOM, requireDm, requireInGame } from '../identity.js';
 
@@ -27,7 +28,7 @@ export function registerWorld(io, socket) {
 
   socket.on('world:get', handle(() => {
     const user = requireInGame(socket);
-    return getWorld({ forDm: user.role === ROLES.DM });
+    return { ...getWorld({ forDm: user.role === ROLES.DM }), approvalRequired: isApprovalRequired() };
   }));
 
   socket.on('world:createCity', dmChange(({ x, y, name }, dm) => {

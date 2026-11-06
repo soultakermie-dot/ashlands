@@ -5,7 +5,11 @@ import { CHARACTER_STATUS, findCharacter } from './characters.js';
 import { GameError } from './errors.js';
 import { ITEM_KINDS, deleteItemRecord, findItem, getItem, toPublicItem } from './items.js';
 import { ROLES, displayNameOf, findUserById, listUsers } from './users.js';
+import { currentPosition } from './travel.js';
 import { TRANSFER_RADIUS_M, distanceMeters } from './world.js';
+
+// Відстань між персонажами там, де вони зараз (навіть посеред дороги).
+const distanceNow = (a, b) => distanceMeters(currentPosition(a), currentPosition(b));
 
 const GOLD_MAX = 1_000_000_000;
 const QTY_MAX = 100_000;
@@ -154,7 +158,7 @@ export function nearbyCharacters(character) {
     if (user.role !== ROLES.PLAYER || user.id === character.userId || !user.activeCharacterId) continue;
     const other = findCharacter(user.activeCharacterId);
     if (!other || other.status !== CHARACTER_STATUS.APPROVED) continue;
-    const d = distanceMeters(character, other);
+    const d = distanceNow(character, other);
     if (d === null || d > TRANSFER_RADIUS_M) continue;
     result.push({ characterId: other.id, name: other.name, ownerName: displayNameOf(user), distance: Math.round(d) });
   }
@@ -171,7 +175,7 @@ function senderAndReceiver(user, toCharacterId) {
   if (to.status !== CHARACTER_STATUS.APPROVED || owner?.activeCharacterId !== to.id) {
     throw new GameError('Цей персонаж зараз не в грі');
   }
-  const d = distanceMeters(from, to);
+  const d = distanceNow(from, to);
   if (d === null || d > TRANSFER_RADIUS_M) throw new GameError(`Передати можна лише тому, хто поруч (до ${TRANSFER_RADIUS_M} м)`);
   return { from, to };
 }

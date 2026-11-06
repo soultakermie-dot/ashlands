@@ -77,6 +77,7 @@ export const tables = {
       pos_y: c.y ?? null,
       sheet: c.sheet ?? {},
       gold: c.gold ?? 0,
+      travel: c.travel ?? null,
       created_at: c.createdAt,
       reviewed_at: c.reviewedAt,
     })),
@@ -91,6 +92,7 @@ export const tables = {
         y: r.pos_y,
         sheet: r.sheet ?? {},
         gold: r.gold ?? 0,
+        travel: r.travel ?? null,
         createdAt: r.created_at,
         reviewedAt: r.reviewed_at,
       })),
@@ -201,9 +203,9 @@ export const tables = {
   worldSettings: {
     table: 'app_meta',
     key: 'key',
-    defaults: { spawn: null, seeded: false },
+    defaults: { spawn: null, seeded: false, travelApproval: false },
     toRows: (data) => [{ key: 'world', value: data }],
-    fromRows: (rows) => ({ spawn: null, seeded: false, ...(rows.find((r) => r.key === 'world')?.value ?? {}) }),
+    fromRows: (rows) => ({ spawn: null, seeded: false, travelApproval: false, ...(rows.find((r) => r.key === 'world')?.value ?? {}) }),
   },
 
   // Службова інформація — один рядок з ключем 'server'.

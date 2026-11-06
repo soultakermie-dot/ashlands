@@ -8,6 +8,7 @@ import { handle } from '../handle.js';
 import { DM_ROOM, requireDm, requireInGame, userRoom } from '../identity.js';
 import { scheduleGameUpdate } from '../broadcast.js';
 import { dropInventoryOf } from '../../services/inventory.js';
+import { cancelRequest } from '../../services/travel.js';
 
 // Персонажі гравця + хто вибраний.
 function mineOf(user) {
@@ -46,6 +47,7 @@ export function registerCharacters(io, socket) {
     const name = findCharacter(characterId)?.name;
     await deleteCharacter(user, characterId);
     dropInventoryOf(characterId);
+    cancelRequest(characterId);
     console.log(`[characters] ${user.login} видалив «${name}»`);
     pushMine(io, user.id);
     broadcastPending(io);

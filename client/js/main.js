@@ -20,6 +20,8 @@ import { initAllCharactersPanel } from './ui/allCharactersPanel.js';
 import { initItemLibraryPanel } from './ui/itemLibraryPanel.js';
 import { initEditorToolbar } from './ui/editorToolbar.js';
 import { initLocationEditor } from './ui/locationEditor.js';
+import { initTravelStatus } from './ui/travelStatus.js';
+import { initTravelDmPanel } from './ui/travelDmPanel.js';
 
 const gameScreen = document.getElementById('game-screen');
 
@@ -37,6 +39,8 @@ initAllCharactersPanel(document.getElementById('all-characters-panel'));
 initItemLibraryPanel(document.getElementById('item-library-panel'));
 initEditorToolbar(gameScreen.querySelector('[data-mode-switch]'), gameScreen.querySelector('[data-editor-toolbar]'));
 initLocationEditor(gameScreen.querySelector('[data-location-editor]'));
+initTravelStatus(gameScreen.querySelector('[data-travel-status]'));
+initTravelDmPanel(gameScreen.querySelector('[data-travel-dm]'));
 initActiveCharacterBadge(gameScreen.querySelector('[data-topbar-character]'));
 initAccountsPanel(document.getElementById('accounts-panel'));
 initCharactersPanel(document.getElementById('characters-panel'));
