@@ -1,10 +1,16 @@
 {
-  "name": "Game",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "name": "ashlands",
+  "version": "0.1.0",
+  "description": "Ashlands — програма-помічник для темної DnD-кампанії",
+  "main": "server/index.js",
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js"
   },
-  "private": true
+  "private": true,
+  "dependencies": {
+    "express": "^5.3.0",
+    "socket.io": "^4.8.4"
+  }
 }
