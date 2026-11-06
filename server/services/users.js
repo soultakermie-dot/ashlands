@@ -12,9 +12,15 @@ export function listUsers() {
   return list();
 }
 
+// Приводимо логін до одного вигляду: прибираємо зайві пробіли, усі види апострофа → '.
+export function normalizeLogin(login) {
+  return login.normalize('NFC').replace(/[’ʼ`]/g, "'").trim().replace(/\s+/g, ' ');
+}
+
+// Пошук без урахування регістру й різниці в апострофах/пробілах («Мар’яна» = «мар'яна»).
 export function findUserByLogin(login) {
-  const key = login.trim().toLowerCase();
-  return list().find((u) => u.login.toLowerCase() === key) ?? null;
+  const key = normalizeLogin(login).toLowerCase();
+  return list().find((u) => normalizeLogin(u.login).toLowerCase() === key) ?? null;
 }
 
 export function findUserById(id) {
@@ -24,7 +30,7 @@ export function findUserById(id) {
 export function createUser(login, password, role = ROLES.PLAYER) {
   const user = {
     id: crypto.randomUUID(),
-    login: login.trim(),
+    login: normalizeLogin(login),
     passwordHash: hashPassword(password),
     role,
     dmNote: '',              // примітка, яку бачить і пише тільки ДМ

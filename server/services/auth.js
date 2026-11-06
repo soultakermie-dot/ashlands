@@ -3,9 +3,12 @@ import crypto from 'node:crypto';
 import { stores } from '../storage/index.js';
 import { GameError } from './errors.js';
 import { verifyPassword } from './passwords.js';
-import { createUser, findUserById, findUserByLogin } from './users.js';
+import { createUser, findUserById, findUserByLogin, normalizeLogin } from './users.js';
 
-const LOGIN_RE = /^[\p{L}\p{N}_-]{3,20}$/u;
+// Логін: літери будь-якої мови, цифри, пробіл, апостроф і символи . _ - @
+const LOGIN_MIN = 3;
+const LOGIN_MAX = 30;
+const LOGIN_ALLOWED_CHAR = /[\p{L}\p{M}\p{N} '._@-]/u;
 const PASSWORD_MIN = 6;
 const PASSWORD_MAX = 100;
 
@@ -13,9 +16,17 @@ const sessions = () => stores.sessions.data.sessions;
 const hashToken = (token) => crypto.createHash('sha256').update(token).digest('hex');
 
 function validate(login, password) {
-  if (typeof login !== 'string' || !LOGIN_RE.test(login.trim())) {
-    throw new GameError('Логін: 3–20 символів, лише літери, цифри, _ або -');
+  if (typeof login !== 'string') throw new GameError('Вкажіть логін');
+  const clean = normalizeLogin(login);
+  const length = [...clean].length;
+  if (length < LOGIN_MIN || length > LOGIN_MAX) {
+    throw new GameError(`Логін: від ${LOGIN_MIN} до ${LOGIN_MAX} символів (зараз ${length})`);
   }
+  const bad = [...clean].find((ch) => !LOGIN_ALLOWED_CHAR.test(ch));
+  if (bad) {
+    throw new GameError(`Логін не може містити символ «${bad}». Можна: літери, цифри, пробіл, апостроф, . _ - @`);
+  }
+  if (!/[\p{L}\p{N}]/u.test(clean)) throw new GameError('Логін має містити хоча б одну літеру або цифру');
   if (typeof password !== 'string' || password.length < PASSWORD_MIN || password.length > PASSWORD_MAX) {
     throw new GameError(`Пароль: щонайменше ${PASSWORD_MIN} символів`);
   }
