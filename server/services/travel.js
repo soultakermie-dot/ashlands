@@ -2,6 +2,8 @@
 // Сервер зберігає маршрут, швидкість і скільки вже пройдено — тож позицію можна порахувати в будь-який момент.
 // ДМ може поставити подорож на паузу («дійшли тільки сюди»), продовжити або скасувати.
 // Якщо ДМ увімкнув «рух з дозволом», гравець лише просить, а ДМ підтверджує.
+// ДМ може поставити на паузу всю гру — тоді стоять усі (pausedBy: 'game').
+// «Йти за лідером»: на початку швидше (boostFactor), поки не наздожене лідера.
 import { config } from '../config.js';
 import { stores } from '../storage/index.js';
 import { CHARACTER_STATUS, findCharacter } from './characters.js';
@@ -26,17 +28,23 @@ export function currentPosition(character, now = Date.now()) {
   ensurePlaced(character);
   const t = character.travel;
   if (!t) return { x: character.x, y: character.y };
-  const [x, y] = pointAt(t.path, progressOf(t, now) * t.length);
+  const [x, y] = pointAt(t.path, distanceAt(t, elapsedOf(t, now)));
   return { x, y };
+}
+
+// Скільки пікселів пройдено за elapsed мс (з урахуванням прискорення «наздогнати»).
+export function distanceAt(t, elapsed) {
+  if (!t.speed) return t.durationMs > 0 ? Math.min(1, elapsed / t.durationMs) * t.length : t.length;
+  const boost = t.boostMs ?? 0;
+  const f = t.boostFactor ?? 1;
+  const d = elapsed <= boost ? t.speed * f * elapsed : t.speed * f * boost + t.speed * (elapsed - boost);
+  return Math.min(t.length, d);
 }
 
 function elapsedOf(t, now) {
   return t.elapsedMs + (t.runningSince ? now - t.runningSince : 0);
 }
 
-function progressOf(t, now) {
-  return t.durationMs > 0 ? Math.min(1, elapsedOf(t, now) / t.durationMs) : 1;
-}
 
 // ---------- Пошук шляху по дорогах ----------
 
@@ -144,8 +152,18 @@ function getCharacter(id) {
   return c;
 }
 
-// Почати подорож персонажа до локації (замінює попередню, якщо була).
-export function startTravel(character, destinationId, now = Date.now()) {
+export const isGamePaused = () => !!settings().gamePaused;
+
+function assertNotPaused() {
+  if (isGamePaused()) throw new GameError('Гра на паузі — майстер зупинив усіх');
+}
+
+/**
+ * Почати подорож персонажа до локації (замінює попередню, якщо була).
+ * options.speed — швидкість (пікс/мс) замість звичайної; options.catchUp — { target: персонаж, якого наздоганяти }.
+ */
+export function startTravel(character, destinationId, now = Date.now(), options = {}) {
+  assertNotPaused();
   const from = currentPosition(character, now);
   const dest = findLocation(destinationId);
   if (!dest) throw new GameError('Локацію не знайдено');
@@ -155,6 +173,12 @@ export function startTravel(character, destinationId, now = Date.now()) {
   const path = findRoute(from, destinationId);
   if (!path) throw new GameError(`Немає дороги до «${dest.name}»`);
   const length = lengthOf(path);
+  const speed = options.speed ?? length / durationFor(length);
+  const { boostMs, boostFactor } = catchUpPlan(path, speed, options.catchUp, now);
+  const boostDistance = speed * boostFactor * boostMs;
+  const durationMs = Math.round(boostDistance >= length
+    ? length / (speed * boostFactor)
+    : boostMs + (length - boostDistance) / speed);
   character.x = from.x;
   character.y = from.y;
   character.travel = {
@@ -162,33 +186,78 @@ export function startTravel(character, destinationId, now = Date.now()) {
     destinationName: dest.name,
     path,
     length,
-    durationMs: durationFor(length),
+    speed,
+    boostMs,
+    boostFactor,
+    durationMs,
     elapsedMs: 0,
     runningSince: now,
+    pausedBy: null,
   };
   requests.delete(character.id);
   stores.characters.save();
   return character.travel;
 }
 
-// ДМ: «дійшли тільки сюди» — пауза (можна продовжити).
+// Скільки часу йти з прискоренням, щоб наздогнати target (який іде тим самим маршрутом попереду).
+function catchUpPlan(path, speed, catchUp, now) {
+  const factor = config.groups.catchUpFactor;
+  if (!catchUp?.target) return { boostMs: 0, boostFactor: 1 };
+  const leaderPos = currentPosition(catchUp.target, now);
+  const gap = project(path, [leaderPos.x, leaderPos.y]).along;   // наскільки лідер попереду по маршруту
+  if (gap <= 1) return { boostMs: 0, boostFactor: 1 };
+  return { boostMs: Math.round(gap / (speed * (factor - 1))), boostFactor: factor };
+}
+
+// Поставити подорож на паузу. by: 'dm' («дійшли тільки сюди») або 'game' (уся гра на паузі).
+export function pauseCharacterTravel(c, by = 'dm', now = Date.now()) {
+  if (!c.travel || !c.travel.runningSince) return false;
+  c.travel.elapsedMs = elapsedOf(c.travel, now);
+  c.travel.runningSince = null;
+  c.travel.pausedBy = by;
+  stores.characters.save();
+  return true;
+}
+
+export function resumeCharacterTravel(c, by = 'dm', now = Date.now()) {
+  if (!c.travel || c.travel.runningSince) return false;
+  if (by === 'dm' && isGamePaused()) throw new GameError('Уся гра на паузі — спершу продовжіть гру');
+  if (by === 'game' && c.travel.pausedBy !== 'game') return false; // його окремо зупинив ДМ — лишається стояти
+  c.travel.runningSince = now;
+  c.travel.pausedBy = null;
+  stores.characters.save();
+  return true;
+}
+
+// ДМ: «дійшли тільки сюди» — пауза одного персонажа (можна продовжити).
 export function pauseTravel(characterId, now = Date.now()) {
   const c = getCharacter(characterId);
   if (!c.travel) throw new GameError('Персонаж не в дорозі');
-  if (!c.travel.runningSince) throw new GameError('Подорож уже на паузі');
-  c.travel.elapsedMs = elapsedOf(c.travel, now);
-  c.travel.runningSince = null;
-  stores.characters.save();
+  if (!pauseCharacterTravel(c, 'dm', now)) throw new GameError('Подорож уже на паузі');
   return c;
 }
 
 export function resumeTravel(characterId, now = Date.now()) {
   const c = getCharacter(characterId);
   if (!c.travel) throw new GameError('Персонаж не в дорозі');
-  if (c.travel.runningSince) throw new GameError('Подорож і так триває');
-  c.travel.runningSince = now;
-  stores.characters.save();
+  if (!resumeCharacterTravel(c, 'dm', now)) throw new GameError('Подорож і так триває');
   return c;
+}
+
+// ---------- Пауза всієї гри ----------
+
+export function pauseGame(now = Date.now()) {
+  if (isGamePaused()) throw new GameError('Гра вже на паузі');
+  settings().gamePaused = true;
+  stores.worldSettings.save();
+  for (const c of stores.characters.data.characters) pauseCharacterTravel(c, 'game', now);
+}
+
+export function resumeGame(now = Date.now()) {
+  if (!isGamePaused()) throw new GameError('Гра й так іде');
+  settings().gamePaused = false;
+  stores.worldSettings.save();
+  for (const c of stores.characters.data.characters) resumeCharacterTravel(c, 'game', now);
 }
 
 // Скасувати подорож: персонаж лишається там, де зараз.
@@ -213,7 +282,7 @@ export function tickTravel(now = Date.now()) {
   const arrived = [];
   for (const c of stores.characters.data.characters) {
     const t = c.travel;
-    if (!t || !t.runningSince || elapsedOf(t, now) < t.durationMs) continue;
+    if (!t || !t.runningSince || distanceAt(t, elapsedOf(t, now)) < t.length) continue;
     const end = t.path[t.path.length - 1];
     c.x = Math.round(end[0]);
     c.y = Math.round(end[1]);
@@ -234,7 +303,11 @@ export function toPublicTravel(t, now = Date.now()) {
     length: t.length,
     durationMs: t.durationMs,
     elapsedMs: elapsedOf(t, now),
+    speed: t.speed ?? null,
+    boostMs: t.boostMs ?? 0,
+    boostFactor: t.boostFactor ?? 1,
     running: !!t.runningSince,
+    pausedBy: t.pausedBy ?? null,
   };
 }
 
@@ -256,6 +329,7 @@ export function playerTravel(user, destinationId, now = Date.now()) {
   if (!dest) throw new GameError('Локацію не знайдено');
   const here = currentPosition(c, now);
   if (!c.travel && dist([here.x, here.y], [dest.x, dest.y]) <= AT_LOCATION_PX) throw new GameError(`Ви вже в «${dest.name}»`);
+  assertNotPaused();
   // Перевіряємо, що дорога існує, ще до запиту.
   if (!findRoute(here, destinationId)) throw new GameError(`Немає дороги до «${dest.name}»`);
 

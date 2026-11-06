@@ -6,6 +6,7 @@ import { session } from '../state/session.js';
 import { tokensState } from '../state/tokens.js';
 import { formatDuration, travelState } from '../state/travel.js';
 import { worldState } from '../state/world.js';
+import { groupsState } from '../state/groups.js';
 
 export function initTokenCard(root, { onMessage }) {
   let characterId = null;
@@ -39,18 +40,35 @@ export function initTokenCard(root, { onMessage }) {
     if (t?.running) status = `🚶 Іде до «${t.destinationName}» · ${formatDuration(tokensState.remainingMs(token))}`;
     else if (t) status = `⏸ Зупинений дорогою до «${t.destinationName}»`;
     else if (token.requested) status = '🙋 Просить дозволу на подорож';
+    if (token.groupId) status += token.isLeader ? ' · ⚑ лідер групи' : ' · у групі';
 
     const actions = [];
+    const g = token.groupId;
     if (isDm) {
-      if (t?.running) actions.push(button('⏸ Зупинити тут', 'btn--ghost', () => act(travelState.pause(token.characterId))));
-      if (t && !t.running) actions.push(button('▶ Продовжити', 'btn--ok', () => act(travelState.resume(token.characterId))));
-      if (t) actions.push(button('✖ Скасувати подорож', 'btn--bad', () => act(travelState.cancel(token.characterId))));
+      // Учасника групи зупиняють лише разом з усією групою.
+      if (g) {
+        if (t?.running) actions.push(button('⏸ Зупинити групу', 'btn--ghost', () => act(groupsState.pause(g))));
+        if (t && !t.running && t.pausedBy === 'dm') actions.push(button('▶ Продовжити групу', 'btn--ok', () => act(groupsState.resume(g))));
+        if (t) actions.push(button('✖ Скасувати подорож групи', 'btn--bad', () => act(groupsState.cancel(g))));
+      } else {
+        if (t?.running) actions.push(button('⏸ Зупинити тут', 'btn--ghost', () => act(travelState.pause(token.characterId))));
+        if (t && !t.running && t.pausedBy === 'dm') actions.push(button('▶ Продовжити', 'btn--ok', () => act(travelState.resume(token.characterId))));
+        if (t) actions.push(button('✖ Скасувати подорож', 'btn--bad', () => act(travelState.cancel(token.characterId))));
+      }
       const select = el('select', { class: 'inv-input' },
         (worldState.current?.locations ?? []).map((l) => el('option', { value: l.id }, `${l.type === 'dungeon' ? '💀' : '🏰'} ${l.name}`)));
       actions.push(el('span', { class: 'token-card__send' }, select,
         button('Відправити', 'btn--ghost', () => act(travelState.send(token.characterId, select.value)), 'Відправити персонажа дорогами до вибраної локації')));
     } else if (isMine && t?.running) {
       actions.push(button('Зупинитись', 'btn--ghost', () => act(travelState.stop())));
+    } else if (!isMine && characters.active && !token.groupId) {
+      const myGroup = groupsState.group;
+      if (!myGroup || myGroup.leaderId === characters.active.id) {
+        actions.push(button('🤝 Запросити в групу', 'btn--ok', async () => {
+          const r = await groupsState.sendInvite(token.characterId);
+          onMessage(r.ok ? `Запрошення надіслано: ${token.name}` : r.error, r.ok ? 'info' : 'error');
+        }));
+      }
     }
 
     // replaceChildren() перетворює null на текст «null» — порожні частини відкидаємо.

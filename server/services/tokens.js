@@ -5,6 +5,7 @@ import { GameError } from './errors.js';
 import { cancelRequest, cancelTravel, currentPosition, hasRequest, toPublicTravel } from './travel.js';
 import { ROLES, listUsers } from './users.js';
 import { ensurePlaced } from './placement.js';
+import { groupOf } from './groups.js';
 import { isInsideMap } from './world.js';
 
 export { ensurePlaced };
@@ -32,6 +33,8 @@ export function buildTokens(onlineIds, { forDm = false } = {}, now = Date.now())
       x: pos.x,
       y: pos.y,
       travel: toPublicTravel(character.travel, now),
+      groupId: groupOf(character.id)?.id ?? null,
+      isLeader: groupOf(character.id)?.leaderId === character.id,
       requested: hasRequest(character.id),
       online: onlineIds.has(user.id),
       ...(forDm ? { ownerLogin: user.login } : {}),

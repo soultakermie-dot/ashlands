@@ -9,6 +9,7 @@ import { DM_ROOM, requireDm, requireInGame, userRoom } from '../identity.js';
 import { scheduleGameUpdate } from '../broadcast.js';
 import { dropInventoryOf } from '../../services/inventory.js';
 import { cancelRequest } from '../../services/travel.js';
+import { onCharacterDeselected } from '../../services/groups.js';
 
 // Персонажі гравця + хто вибраний.
 function mineOf(user) {
@@ -48,6 +49,7 @@ export function registerCharacters(io, socket) {
     await deleteCharacter(user, characterId);
     dropInventoryOf(characterId);
     cancelRequest(characterId);
+    onCharacterDeselected(characterId);
     console.log(`[characters] ${user.login} видалив «${name}»`);
     pushMine(io, user.id);
     broadcastPending(io);
@@ -57,7 +59,9 @@ export function registerCharacters(io, socket) {
 
   socket.on('characters:select', handle(({ characterId }) => {
     const user = requireInGame(socket);
+    const previous = user.activeCharacterId;
     selectCharacter(user, characterId ?? null);
+    if (previous && previous !== user.activeCharacterId) onCharacterDeselected(previous);
     pushMine(io, user.id);
     scheduleGameUpdate(io);
     return {};

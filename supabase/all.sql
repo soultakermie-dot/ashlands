@@ -121,3 +121,12 @@ alter table public.roads enable row level security;
 
 -- ===== 010_travel.sql =====
 alter table public.characters add column if not exists travel jsonb;
+
+-- ===== 011_groups.sql =====
+create table if not exists public.groups (
+  id                  uuid        primary key,
+  leader_character_id uuid        not null,
+  members             jsonb       not null default '[]'::jsonb,
+  created_at          timestamptz not null default now()
+);
+alter table public.groups enable row level security;

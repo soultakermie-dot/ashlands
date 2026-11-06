@@ -7,8 +7,9 @@ import { findCharacter } from '../../services/characters.js';
 import { GameError } from '../../services/errors.js';
 import {
   approveRequest, cancelRequest, cancelTravel, cancelTravelById, pauseTravel, playerTravel,
-  rejectRequest, resumeTravel, setApprovalRequired, startTravel, tickTravel,
+  pauseGame, rejectRequest, resumeGame, resumeTravel, setApprovalRequired, startTravel, tickTravel,
 } from '../../services/travel.js';
+import { groupOf } from '../../services/groups.js';
 import { scheduleGameUpdate } from '../broadcast.js';
 import { handle } from '../handle.js';
 import { requireDm, requireInGame, userRoom } from '../identity.js';
@@ -50,8 +51,15 @@ export function registerTravel(io, socket) {
   }));
 
   // ---------- ДМ ----------
-  socket.on('travel:pause', handle(({ characterId }) => { requireDm(socket); pauseTravel(characterId); return done(); }));
-  socket.on('travel:resume', handle(({ characterId }) => { requireDm(socket); resumeTravel(characterId); return done(); }));
+  // Окремого учасника групи ДМ не зупиняє — лише всю групу (groups:pause).
+  const notInGroup = (characterId) => {
+    if (groupOf(characterId)) throw new GameError('Персонаж у групі — зупинити можна лише всю групу');
+  };
+  socket.on('travel:pause', handle(({ characterId }) => { requireDm(socket); notInGroup(characterId); pauseTravel(characterId); return done(); }));
+  socket.on('travel:resume', handle(({ characterId }) => { requireDm(socket); notInGroup(characterId); resumeTravel(characterId); return done(); }));
+
+  socket.on('travel:pauseGame', handle(() => { const dm = requireDm(socket); pauseGame(); console.log(`[travel] ${dm.login}: ПАУЗА гри`); return done(); }));
+  socket.on('travel:resumeGame', handle(() => { const dm = requireDm(socket); resumeGame(); console.log(`[travel] ${dm.login}: гра продовжується`); return done(); }));
   socket.on('travel:cancel', handle(({ characterId }) => { requireDm(socket); cancelTravelById(characterId); return done(); }));
   socket.on('travel:approve', handle(({ characterId }) => { requireDm(socket); approveRequest(characterId); return done(); }));
   socket.on('travel:reject', handle(({ characterId }) => { requireDm(socket); rejectRequest(characterId); return done(); }));

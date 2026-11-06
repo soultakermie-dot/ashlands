@@ -199,13 +199,28 @@ export const tables = {
     }),
   },
 
+  groups: {
+    table: 'groups',
+    key: 'id',
+    defaults: { groups: [] },
+    toRows: ({ groups }) => groups.map((g) => ({
+      id: g.id,
+      leader_character_id: g.leaderId,
+      members: g.members,
+      created_at: g.createdAt,
+    })),
+    fromRows: (rows) => ({
+      groups: rows.map((r) => ({ id: r.id, leaderId: r.leader_character_id, members: r.members ?? [], createdAt: r.created_at })),
+    }),
+  },
+
   // Налаштування світу (стартова точка тощо) — один рядок app_meta з ключем 'world'.
   worldSettings: {
     table: 'app_meta',
     key: 'key',
-    defaults: { spawn: null, seeded: false, travelApproval: false },
+    defaults: { spawn: null, seeded: false, travelApproval: false, gamePaused: false },
     toRows: (data) => [{ key: 'world', value: data }],
-    fromRows: (rows) => ({ spawn: null, seeded: false, travelApproval: false, ...(rows.find((r) => r.key === 'world')?.value ?? {}) }),
+    fromRows: (rows) => ({ spawn: null, seeded: false, travelApproval: false, gamePaused: false, ...(rows.find((r) => r.key === 'world')?.value ?? {}) }),
   },
 
   // Службова інформація — один рядок з ключем 'server'.

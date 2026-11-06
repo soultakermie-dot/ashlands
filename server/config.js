@@ -30,6 +30,20 @@ export const config = {
     // Для тестів: TRAVEL_TIME_SCALE=0.01 — усі подорожі в 100 разів швидші.
     timeScale: Number(process.env.TRAVEL_TIME_SCALE) || 1,
   },
+  groups: {
+    // Запросити в групу можна того, хто ближче за це.
+    inviteRadiusM: 300,
+    // Учасник далі за це від лідера (і не йде за ним) — «відстає».
+    lagRadiusM: 300,
+    // Скільки можна відставати, поки не випадеш з групи.
+    lagGraceMs: Number(process.env.GROUP_LAG_GRACE_MS) || 60 * 1000,
+    // «Йти за лідером»: у скільки разів швидше, поки не наздожене.
+    catchUpFactor: 1.5,
+    // Скільки триває кожен крок голосування.
+    voteMs: Number(process.env.GROUP_VOTE_MS) || 2 * MINUTE,
+    // Скільки чекає запрошення.
+    inviteMs: 2 * MINUTE,
+  },
   admission: {
     // Скільки гравець може бути відсутнім, не втрачаючи допуску ДМ.
     awayLimitMs: Number(process.env.AWAY_LIMIT_MS) || 10 * MINUTE,

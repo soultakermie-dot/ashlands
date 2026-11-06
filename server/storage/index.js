@@ -35,6 +35,8 @@ export const stores = {
 stores.inventory = makeStore('inventory', [stores.characters, stores.items]);
 // Дорога посилається на дві локації.
 stores.roads = makeStore('roads', [stores.locations]);
+// Групи посилаються на персонажів.
+stores.groups = makeStore('groups', [stores.characters]);
 
 // Завантажуємо всі дані перед стартом сервера.
 try {

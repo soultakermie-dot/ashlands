@@ -20,7 +20,9 @@ export function initTravelStatus(root) {
     const t = token?.travel;
     let content = null;
 
-    if (t?.running) {
+    if (travelState.gamePaused && session.user?.role === 'player') {
+      content = [el('span', {}, '⏸ Гра на паузі — майстер зупинив усіх')];
+    } else if (t?.running) {
       content = [
         el('span', {}, `🚶 В дорозі до «${t.destinationName}» · ${formatDuration(tokensState.remainingMs(token))}`),
         button('Зупинитись', 'btn--ghost', () => travelState.stop()),
@@ -54,6 +56,7 @@ export function initTravelStatus(root) {
   });
 
   tokensState.onChange(render);
+  travelState.onChange(render);
   characters.onChange(render);
   session.onChange(render);
 }

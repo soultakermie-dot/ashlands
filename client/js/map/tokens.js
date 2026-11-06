@@ -74,7 +74,7 @@ export class TokenLayer {
         }
         if (token.travel.running && pos.progress < 1) moving = true;
         if (this.options.showRoute(token)) {
-          lines.push(this.#routeLine(token, remainingPath(token.travel.path, pos.progress * token.travel.length)));
+          lines.push(this.#routeLine(token, remainingPath(token.travel.path, pos.distance)));
         }
       }
       this.routes.replaceChildren(...lines);
@@ -113,6 +113,8 @@ export class TokenLayer {
     el.classList.toggle('token--offline', !token.online);
     el.classList.toggle('token--traveling', !!token.travel);
     el.classList.toggle('token--paused', !!token.travel && !token.travel.running);
+    el.classList.toggle('token--leader', !!token.isLeader);
+    el.classList.toggle('token--grouped', !!token.groupId);
     el.classList.toggle('token--draggable', this.options.canDrag(token));
     const where = token.travel ? ` → ${token.travel.destinationName}${token.travel.running ? '' : ' (зупинений)'}` : '';
     el.title = (token.ownerLogin ? `${token.name} (гравець: ${token.ownerLogin})` : token.name) + where;

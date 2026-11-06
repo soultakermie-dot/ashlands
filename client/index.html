@@ -17,6 +17,7 @@
   <link rel="stylesheet" href="css/inventory.css">
   <link rel="stylesheet" href="css/editor.css">
   <link rel="stylesheet" href="css/travel.css">
+  <link rel="stylesheet" href="css/groups.css">
 </head>
 <body>
   <!-- Поки чекаємо на сервер -->
@@ -81,8 +82,12 @@
       </div>
     </div>
 
-    <p class="map-message" data-map-message hidden></p>
-    <div class="travel-status" data-travel-status hidden></div>
+    <!-- Рядки вгорі карти: подорож, група, повідомлення -->
+    <div class="banners">
+      <div class="travel-status" data-travel-status hidden></div>
+      <div class="travel-status group-banner" data-group-banner hidden></div>
+      <p class="map-message" data-map-message hidden></p>
+    </div>
     <div class="location-card token-card" data-token-card hidden></div>
 
     <div class="map-controls">
@@ -102,6 +107,7 @@
     <div class="editor-toolbar" data-editor-toolbar hidden>
       <div class="editor-toolbar__tools" data-editor-tools></div>
       <p class="editor-toolbar__hint" data-editor-hint hidden></p>
+      <div class="game-pause" data-game-pause hidden></div>
       <div class="travel-dm" data-travel-dm hidden>
         <label class="travel-dm__toggle"><input type="checkbox" data-travel-approval> 🙋 Рух гравців — лише з дозволом</label>
         <ul class="travel-dm__requests" data-travel-requests hidden></ul>
@@ -130,6 +136,7 @@
         <button type="button" class="nav-btn" data-open-view="characters" data-player-only>🧙 <span>Персонажі</span></button>
         <button type="button" class="nav-btn" data-open-view="sheet" data-player-only>📜 <span>Лист персонажа</span></button>
         <button type="button" class="nav-btn" data-open-view="inventory" data-player-only>🎒 <span>Інвентар</span></button>
+        <button type="button" class="nav-btn" data-open-view="group" data-player-only>⚑ <span>Група</span></button>
         <button type="button" class="nav-btn" data-open-view="players">👥 <span>Гравці</span></button>
 
         <div class="sidebar__dm" data-dm-only hidden>
@@ -137,6 +144,7 @@
           <button type="button" class="nav-btn" data-open-view="lobby">🚪 <span>Вхід у гру</span><b class="nav-badge" data-badge="lobby" hidden></b></button>
           <button type="button" class="nav-btn" data-open-view="new-characters">🧙 <span>Нові персонажі</span><b class="nav-badge" data-badge="new-characters" hidden></b></button>
           <button type="button" class="nav-btn" data-open-view="all-characters">🗂 <span>Усі персонажі</span></button>
+          <button type="button" class="nav-btn" data-open-view="groups">⚑ <span>Групи</span><b class="nav-badge" data-badge="groups" hidden></b></button>
           <button type="button" class="nav-btn" data-open-view="items">🧪 <span>Предмети</span></button>
         </div>
       </nav>
@@ -194,6 +202,14 @@
 
       <div data-view="inventory" data-title="🎒 Інвентар" hidden>
         <div data-character-inventory></div>
+      </div>
+
+      <div data-view="group" data-title="⚑ Моя група" hidden>
+        <section data-group-panel></section>
+      </div>
+
+      <div data-view="groups" data-title="⚑ Групи" hidden>
+        <section data-groups-dm-panel></section>
       </div>
 
       <div data-view="players" data-title="👥 Гравці" hidden>

@@ -26,6 +26,15 @@ session.onChange(async (user) => {
   if (res.ok) setTokens(res.tokens, res.now);
 });
 
+// Скільки пікселів пройдено за elapsed мс (на початку «Йти за лідером» — швидше). Як на сервері.
+function distanceAt(t, elapsed) {
+  if (!t.speed) return t.durationMs > 0 ? Math.min(1, elapsed / t.durationMs) * t.length : t.length;
+  const boost = t.boostMs ?? 0;
+  const f = t.boostFactor ?? 1;
+  const d = elapsed <= boost ? t.speed * f * elapsed : t.speed * f * boost + t.speed * (elapsed - boost);
+  return Math.min(t.length, d);
+}
+
 // Скільки мілісекунд подорожі пройдено зараз.
 function elapsedNow(travel) {
   return travel.elapsedMs + (travel.running ? Date.now() - receivedAt.client : 0);
@@ -43,9 +52,9 @@ export const tokensState = {
   positionOf(token) {
     const t = token.travel;
     if (!t) return { x: token.x, y: token.y, progress: null };
-    const progress = t.durationMs > 0 ? Math.min(1, elapsedNow(t) / t.durationMs) : 1;
-    const { point } = pointAt(t.path, progress * t.length);
-    return { x: point[0], y: point[1], progress };
+    const d = distanceAt(t, elapsedNow(t));
+    const { point } = pointAt(t.path, d);
+    return { x: point[0], y: point[1], progress: t.length > 0 ? d / t.length : 1, distance: d };
   },
 
   // Скільки мілісекунд лишилось іти.

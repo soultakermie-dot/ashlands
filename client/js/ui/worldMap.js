@@ -93,7 +93,7 @@ export function initWorldMap(root) {
     onClick: (loc) => onLocationClick(loc),
   });
 
-  const tokenCard = initTokenCard(root.querySelector('[data-token-card]'), { onMessage: (text) => showMessage(text) });
+  const tokenCard = initTokenCard(root.querySelector('[data-token-card]'), { onMessage: (text, kind) => showMessage(text, kind) });
 
   const tokens = new TokenLayer(root.querySelector('[data-map-tokens]'), root.querySelector('[data-map-routes]'), view, {
     canDrag: () => isDm() && !creative(),

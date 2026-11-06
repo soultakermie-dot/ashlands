@@ -4,25 +4,26 @@ import { request } from '../net/request.js';
 import { session } from './session.js';
 
 const listeners = new Set();
-let state = { approvalRequired: false, requests: [] };
+let state = { approvalRequired: false, gamePaused: false, requests: [] };
 
 function set(patch) {
   state = { ...state, ...patch };
   for (const fn of listeners) fn(state);
 }
 
-socket.on('travel:settings', ({ approvalRequired }) => set({ approvalRequired }));
+socket.on('travel:settings', ({ approvalRequired, gamePaused }) => set({ approvalRequired, gamePaused: !!gamePaused }));
 socket.on('travel:requests', (requests) => set({ requests }));
 
 session.onChange(async (user) => {
   if (!user?.admitted) return set({ requests: [] });
   const res = await request('world:get');
-  if (res.ok) set({ approvalRequired: !!res.approvalRequired });
+  if (res.ok) set({ approvalRequired: !!res.approvalRequired, gamePaused: !!res.gamePaused });
 });
 
 export const travelState = {
   get approvalRequired() { return state.approvalRequired; },
   get requests() { return state.requests; },
+  get gamePaused() { return state.gamePaused; },
   onChange(fn) {
     listeners.add(fn);
     return () => listeners.delete(fn);
@@ -40,6 +41,8 @@ export const travelState = {
   reject: (characterId) => request('travel:reject', { characterId }),
   send: (characterId, locationId) => request('travel:send', { characterId, locationId }),
   setApproval: (required) => request('travel:setApproval', { required }),
+  pauseGame: () => request('travel:pauseGame'),
+  resumeGame: () => request('travel:resumeGame'),
 };
 
 // «~12 хв», «~40 с»

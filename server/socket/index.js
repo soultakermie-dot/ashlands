@@ -13,10 +13,12 @@ import { registerSheet } from './handlers/sheet.js';
 import { registerItems } from './handlers/items.js';
 import { registerInventory } from './handlers/inventory.js';
 import { registerTravel, startTravelTicker } from './handlers/travel.js';
+import { registerGroups, startGroupsTicker } from './handlers/groups.js';
 
 const handlers = [
   registerPresence, registerServerInfo, registerAuth, registerAccounts, registerCharacters, registerWorld,
   registerTokens, registerPlayers, registerSheet, registerItems, registerInventory, registerTravel,
+  registerGroups,
 ];
 
 // Найбільше повідомлення від клієнта (з запасом для аватарки до 512 КБ).
@@ -31,5 +33,6 @@ export function createSocketServer(httpServer) {
 
   startAwayExpiry(io);
   startTravelTicker(io);
+  startGroupsTicker(io);
   return io;
 }

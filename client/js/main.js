@@ -22,6 +22,12 @@ import { initEditorToolbar } from './ui/editorToolbar.js';
 import { initLocationEditor } from './ui/locationEditor.js';
 import { initTravelStatus } from './ui/travelStatus.js';
 import { initTravelDmPanel } from './ui/travelDmPanel.js';
+import { initGroupBanner } from './ui/groupBanner.js';
+import { initGroupPanel } from './ui/groupPanel.js';
+import { initGroupsDmPanel } from './ui/groupsDmPanel.js';
+import { initGamePauseControl } from './ui/gamePauseControl.js';
+import { groupsState } from './state/groups.js';
+import { setBadge } from './ui/sidebarNav.js';
 
 const gameScreen = document.getElementById('game-screen');
 
@@ -41,6 +47,14 @@ initEditorToolbar(gameScreen.querySelector('[data-mode-switch]'), gameScreen.que
 initLocationEditor(gameScreen.querySelector('[data-location-editor]'));
 initTravelStatus(gameScreen.querySelector('[data-travel-status]'));
 initTravelDmPanel(gameScreen.querySelector('[data-travel-dm]'));
+initGroupBanner(gameScreen.querySelector('[data-group-banner]'));
+initGroupPanel(gameScreen.querySelector('[data-group-panel]'));
+initGroupsDmPanel(gameScreen.querySelector('[data-groups-dm-panel]'));
+initGamePauseControl(gameScreen.querySelector('[data-game-pause]'), {
+  onMessage: (text) => { const m = gameScreen.querySelector('[data-map-message]'); m.textContent = text; m.hidden = !text; },
+});
+// ДМ: лічильник груп, де нічия в голосуванні (треба обрати лідера).
+groupsState.onChange(({ all }) => setBadge('groups', all.filter((g) => g.vote?.stage === 'tie').length));
 initActiveCharacterBadge(gameScreen.querySelector('[data-topbar-character]'));
 initAccountsPanel(document.getElementById('accounts-panel'));
 initCharactersPanel(document.getElementById('characters-panel'));

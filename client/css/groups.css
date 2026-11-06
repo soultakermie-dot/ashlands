@@ -1,0 +1,44 @@
+/* Групи: рядки вгорі карти, лідер на карті, розділи «Моя група» / «Групи», пауза гри. */
+
+/* --- Рядки вгорі карти (подорож, група, повідомлення) одне під одним --- */
+.banners {
+  position: absolute;
+  top: 4rem;
+  left: 50%;
+  z-index: 12;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  transform: translateX(-50%);
+  max-width: calc(100% - 2rem);
+  pointer-events: none;
+}
+
+.banners > * { pointer-events: auto; }
+.banners .travel-status,
+.banners .map-message { position: static; transform: none; }
+
+.group-banner { flex-wrap: wrap; justify-content: center; white-space: normal; }
+
+/* --- Лідер групи на карті --- */
+.token--leader .token__label::before { content: '⚑ '; color: var(--accent); }
+.token--grouped .avatar { box-shadow: 0 0 0 2px rgba(184, 146, 90, 0.55), 0 2px 8px rgba(0, 0, 0, 0.7); }
+.token--grouped.token--mine .avatar { box-shadow: 0 0 0 3px rgba(143, 191, 106, 0.5), 0 2px 8px rgba(0, 0, 0, 0.7); }
+
+/* --- Голосування --- */
+.group-vote { margin: 0.75rem 0 0; padding: 0.5rem 0.75rem; border: 1px dashed var(--accent); border-radius: 6px; }
+
+/* --- ДМ: групи --- */
+.dm-group { padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px; margin-top: 0.75rem; }
+.dm-group--tie { border-color: var(--bad); }
+.dm-group__head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5rem; }
+.dm-group__actions,
+.dm-group__tie,
+.dm-group__member-actions { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+.dm-group__tie { margin-top: 0.5rem; }
+
+/* --- Пауза гри --- */
+.game-pause { margin-top: 0.5rem; }
+.game-pause .btn { width: 100%; }
+.is-game-paused .map { filter: saturate(0.5) brightness(0.85); }
