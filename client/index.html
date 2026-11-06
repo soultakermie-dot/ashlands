@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="css/forms.css">
   <link rel="stylesheet" href="css/screens.css">
   <link rel="stylesheet" href="css/accounts.css">
+  <link rel="stylesheet" href="css/characters.css">
 </head>
 <body>
   <!-- Поки чекаємо на сервер -->
@@ -62,6 +63,50 @@
       <p>Ви увійшли як <strong data-user-name></strong></p>
       <p class="hint" data-user-role></p>
       <button type="button" class="btn btn--ghost" data-logout>Вийти</button>
+    </section>
+
+    <!-- Персонажі гравця -->
+    <section class="panel panel--wide" id="characters-panel" hidden>
+      <h2 class="panel__title">Мої персонажі</h2>
+      <p class="hint" data-active-character></p>
+      <p class="form-message" hidden></p>
+      <ul class="character-list" data-characters></ul>
+
+      <button type="button" class="btn" data-create-character style="margin-top: 1rem">+ Новий персонаж</button>
+
+      <div class="character-form" data-character-form hidden>
+        <form class="form" novalidate>
+          <div class="avatar-picker">
+            <label class="avatar avatar--lg avatar-picker__preview" for="avatar-input" data-avatar-preview title="Вибрати картинку">
+            </label>
+            <div class="avatar-picker__hint">
+              <label class="btn btn--small btn--ghost">
+                Вибрати картинку
+                <input type="file" id="avatar-input" name="avatar" accept="image/*" hidden>
+              </label>
+              <button type="button" class="btn btn--small btn--ghost" data-avatar-clear>Без аватарки</button>
+              <span class="hint">Картинка обріжеться до квадрата</span>
+            </div>
+          </div>
+          <label class="field">
+            <span>Ім'я персонажа</span>
+            <input name="name" required maxlength="40" autocomplete="off">
+          </label>
+          <p class="form-message" hidden></p>
+          <div class="form-actions">
+            <button type="button" class="btn btn--ghost" data-cancel>Скасувати</button>
+            <button type="submit" class="btn">Створити</button>
+          </div>
+          <p class="hint">Персонаж з'явиться після підтвердження ДМ.</p>
+        </form>
+      </div>
+    </section>
+
+    <!-- Тільки для ДМ: нові персонажі -->
+    <section class="panel panel--wide" id="character-review-panel" hidden>
+      <h2 class="panel__title">Нові персонажі (<span data-pending-characters-count>0</span>)</h2>
+      <p class="form-message" hidden></p>
+      <ul class="character-list" data-pending-characters></ul>
     </section>
 
     <!-- Тільки для ДМ -->

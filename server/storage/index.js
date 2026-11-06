@@ -1,4 +1,4 @@
-// Усі сховища гри в одному місці. Нові (персонажі, карта) додаються сюди і в supabase/tables.js.
+// Усі сховища гри в одному місці. Нові (інвентар, карта) додаються сюди і в supabase/tables.js.
 // Якщо в .env є ключі Supabase — дані йдуть у Supabase, інакше — у JSON-файли в папці data/.
 import path from 'node:path';
 import { config } from '../config.js';
@@ -25,6 +25,7 @@ export const stores = {
   users,                                 // акаунти: логін, роль, хеш пароля, примітка ДМ
   sessions: makeStore('sessions', [users]),     // активні входи
   admissions: makeStore('admissions', [users]), // кого ДМ пустив у гру
+  characters: makeStore('characters', [users]), // персонажі гравців
 };
 
 // Завантажуємо всі дані перед стартом сервера.

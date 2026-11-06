@@ -7,12 +7,16 @@ import { initServerInfo } from './ui/serverInfo.js';
 import { initAuthScreen } from './ui/authScreen.js';
 import { initUserBar } from './ui/userBar.js';
 import { initAccountsPanel } from './ui/accountsPanel.js';
+import { initCharactersPanel } from './ui/charactersPanel.js';
+import { initCharacterReviewPanel } from './ui/characterReviewPanel.js';
 
 initConnectionStatus(socket, document.getElementById('connection-status'));
 initServerInfo(socket, document.getElementById('server-info'));
 initAuthScreen(document.getElementById('auth-screen'));
 initUserBar();
 initAccountsPanel(document.getElementById('accounts-panel'));
+initCharactersPanel(document.getElementById('characters-panel'));
+initCharacterReviewPanel(document.getElementById('character-review-panel'));
 
 // Не увійшов — вхід; увійшов, але ДМ ще не пустив — очікування; інакше — гра.
 function screenFor(user) {

@@ -35,6 +35,7 @@ export function createUser(login, password, role = ROLES.PLAYER) {
     role,
     dmNote: '',              // примітка, яку бачить і пише тільки ДМ
     firstAdmittedAt: null,   // коли ДМ вперше пустив у гру (null — «новий» гравець)
+    activeCharacterId: null, // вибраний персонаж
     createdAt: new Date().toISOString(),
   };
   list().push(user);
@@ -59,3 +60,8 @@ export function markFirstAdmission(user) {
 }
 
 export const isNewPlayer = (user) => !user.firstAdmittedAt;
+
+export function setActiveCharacter(user, characterId) {
+  user.activeCharacterId = characterId;
+  stores.users.save();
+}

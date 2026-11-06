@@ -16,6 +16,7 @@ export const tables = {
       role: u.role,
       dm_note: u.dmNote ?? '',
       first_admitted_at: u.firstAdmittedAt ?? null,
+      active_character_id: u.activeCharacterId ?? null,
       created_at: u.createdAt,
     })),
     fromRows: (rows) => ({
@@ -26,6 +27,7 @@ export const tables = {
         role: r.role,
         dmNote: r.dm_note,
         firstAdmittedAt: r.first_admitted_at,
+        activeCharacterId: r.active_character_id,
         createdAt: r.created_at,
       })),
     }),
@@ -56,6 +58,32 @@ export const tables = {
     })),
     fromRows: (rows) => ({
       users: Object.fromEntries(rows.map((r) => [r.user_id, { admittedAt: r.admitted_at, awaySince: ms(r.away_since) }])),
+    }),
+  },
+
+  characters: {
+    table: 'characters',
+    key: 'id',
+    defaults: { characters: [] },
+    toRows: ({ characters }) => characters.map((c) => ({
+      id: c.id,
+      user_id: c.userId,
+      name: c.name,
+      avatar_path: c.avatarPath,
+      status: c.status,
+      created_at: c.createdAt,
+      reviewed_at: c.reviewedAt,
+    })),
+    fromRows: (rows) => ({
+      characters: rows.map((r) => ({
+        id: r.id,
+        userId: r.user_id,
+        name: r.name,
+        avatarPath: r.avatar_path,
+        status: r.status,
+        createdAt: r.created_at,
+        reviewedAt: r.reviewed_at,
+      })),
     }),
   },
 

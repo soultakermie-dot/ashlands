@@ -5,11 +5,15 @@ import { registerPresence } from './handlers/presence.js';
 import { registerServerInfo } from './handlers/serverInfo.js';
 import { registerAuth } from './handlers/auth.js';
 import { registerAccounts, startAwayExpiry } from './handlers/accounts.js';
+import { registerCharacters } from './handlers/characters.js';
 
-const handlers = [registerPresence, registerServerInfo, registerAuth, registerAccounts];
+const handlers = [registerPresence, registerServerInfo, registerAuth, registerAccounts, registerCharacters];
+
+// Найбільше повідомлення від клієнта (з запасом для аватарки до 512 КБ).
+const MAX_MESSAGE_BYTES = 1024 * 1024;
 
 export function createSocketServer(httpServer) {
-  const io = new Server(httpServer);
+  const io = new Server(httpServer, { maxHttpBufferSize: MAX_MESSAGE_BYTES });
 
   io.on('connection', (socket) => {
     for (const register of handlers) register(io, socket);

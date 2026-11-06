@@ -1,0 +1,80 @@
+/* Персонажі: аватарки, картки, форма створення. */
+.avatar {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  background: var(--bg);
+  color: var(--accent);
+  font-weight: bold;
+}
+
+.avatar img { width: 100%; height: 100%; object-fit: cover; }
+.avatar--md { width: 48px; height: 48px; font-size: 1.3rem; }
+.avatar--lg { width: 96px; height: 96px; font-size: 2.5rem; }
+
+.character-list {
+  list-style: none;
+  margin: 1rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.5rem;
+  text-align: left;
+}
+
+.character-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+.character-card--active { border-color: var(--ok); }
+.character-card--active .avatar { border-color: var(--ok); }
+.character-card--pending { border-style: dashed; }
+.character-card--rejected { opacity: 0.6; }
+.character-card--rejected .character-card__status { color: var(--bad); }
+
+.character-card__info {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 0.15rem;
+  overflow-wrap: anywhere;
+}
+
+.character-card__status { font-size: 0.8rem; opacity: 0.75; }
+.character-card--active .character-card__status { color: var(--ok); opacity: 1; }
+.character-card__actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 0.4rem; }
+
+.character-form {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.avatar-picker {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.avatar-picker__preview {
+  cursor: pointer;
+  color: var(--text);
+  opacity: 0.8;
+}
+
+.avatar-picker__preview:hover { border-color: var(--accent); opacity: 1; }
+.avatar-picker__hint { display: grid; gap: 0.35rem; font-size: 0.85rem; }
+
+.form-actions { display: flex; gap: 0.5rem; justify-content: flex-end; }
+
+@media (max-width: 480px) {
+  .character-card { flex-wrap: wrap; }
+  .character-card__actions { width: 100%; }
+}
