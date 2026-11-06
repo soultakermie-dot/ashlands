@@ -1,5 +1,6 @@
 // Світ: карта, локації (міста, підземелля), дороги, стартова точка.
 // Міста, дороги й старт ДМ готує в творчому режимі; підземелля ставить прямо в грі.
+import { forgetTerrain } from './terrain.js';
 import crypto from 'node:crypto';
 import { stores } from '../storage/index.js';
 import { GameError } from './errors.js';
@@ -168,6 +169,7 @@ export function deleteLocation(id) {
   const scenes = stores.cityScenes.data.scenes;
   const si = scenes.findIndex((s) => s.locationId === id);
   if (si >= 0) { scenes.splice(si, 1); stores.cityScenes.save(); }
+  forgetTerrain(id);
   stores.locations.save();
   return loc;
 }

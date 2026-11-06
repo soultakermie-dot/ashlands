@@ -224,6 +224,14 @@ export const tables = {
     fromRows: (rows) => ({ scenes: rows.map((r) => ({ locationId: r.location_id, folder: r.folder, objects: r.objects ?? [], updatedAt: r.updated_at })) }),
   },
 
+  cityTerrains: {
+    table: 'city_terrains',
+    key: 'location_id',
+    defaults: { terrains: [] },
+    toRows: ({ terrains }) => terrains.map((t) => ({ location_id: t.locationId, data: t.data, updated_at: t.updatedAt })),
+    fromRows: (rows) => ({ terrains: rows.map((r) => ({ locationId: r.location_id, data: r.data, updatedAt: r.updated_at })) }),
+  },
+
   dmNotes: {
     table: 'dm_notes',
     key: 'id',

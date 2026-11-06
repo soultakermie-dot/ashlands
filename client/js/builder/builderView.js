@@ -4,6 +4,7 @@ import { socket } from '../net/socket.js';
 import { request } from '../net/request.js';
 import { button, el, messageLine } from '../lib/dom.js';
 import { CityScene3D } from './scene3d.js';
+import { terrainPanel } from './terrainPanel.js';
 
 const MODES = [
   { id: 'translate', label: '✥ Рух', key: 'w' },
@@ -20,6 +21,10 @@ export function initBuilderView(root, { onClose }) {
   let city = null;          // дані сцени з сервера
   let selectedId = null;
   let placingModel = null;  // шлях моделі, яку ставимо кліком
+  let tab = 'objects';      // 'objects' — предмети, 'terrain' — земля
+  let terrain = null;       // земля з сервера: { mode, version, size, spacing, count }
+  let terrainTool = 'select';
+  let heightStep = 1;
 
   const urlOf = (modelPath) => `/assets/models/${modelPath}`;
 
@@ -33,6 +38,8 @@ export function initBuilderView(root, { onClose }) {
         if (r.ok) Object.assign(city.objects.find((o) => o.id === id) ?? {}, r.object);
         render();
       },
+      onTerrainClick: (p, shift) => terrainClick(p, shift),
+      onPointsMoved: (indices, heights) => setHeights(indices, heights),
     });
     return scene3d;
   }
@@ -59,6 +66,9 @@ export function initBuilderView(root, { onClose }) {
     city = null;
     selectedId = null;
     placingModel = null;
+    terrain = null;
+    tab = 'objects';
+    scene3d?.setTerrainTool(null);
     onClose?.();
   }
 
@@ -67,10 +77,103 @@ export function initBuilderView(root, { onClose }) {
     if (!r.ok) { message.show(r.error); return; }
     const terrainChanged = resetTerrain || r.scene.terrainUrl !== city?.terrainUrl;
     city = r.scene;
-    if (terrainChanged) await scene3d.setTerrain(city.terrainUrl);
+    if (terrainChanged) await loadTerrain();
     await scene3d.setObjects(city.objects, urlOf);
     if (selectedId && !city.objects.some((o) => o.id === selectedId)) selectedId = null;
-    scene3d.select(selectedId);
+    if (tab === 'objects') scene3d.select(selectedId);
+    render();
+  }
+
+  // ---------- Земля ----------
+
+  // Завантажити землю з сервера (вибір точок зберігаємо, якщо вони ще є).
+  async function loadTerrain(keepSelection = scene3d.pointTerrain?.selected ?? []) {
+    const r = await request('build:terrain', { locationId: city.locationId });
+    if (!r.ok) { message.show(r.error); return; }
+    const { points, colors, ...info } = r.terrain;
+    terrain = info;
+    const useGlb = terrain.mode === 'glb' && city.terrainUrl;
+    await scene3d.setTerrain(useGlb ? city.terrainUrl : null, useGlb ? null : r.terrain);
+    if (tab === 'terrain' && scene3d.pointTerrain) scene3d.selectPoints(keepSelection);
+    render();
+  }
+
+  // Зміна землі: з поточною версією; якщо хтось уже змінив — перезавантажуємо.
+  async function terrainOp(event, payload) {
+    const r = await save(event, { version: terrain.version, ...payload });
+    if (r.ok) {
+      terrain.version = r.version;
+      if (scene3d.pointTerrain) scene3d.pointTerrain.version = r.version;
+    } else if (r.code === 'stale') {
+      await loadTerrain();
+    }
+    return r;
+  }
+
+  async function setHeights(indices, heights) {
+    const pt = scene3d.pointTerrain;
+    const before = indices.map((i) => pt.heightOf(i));
+    indices.forEach((i, j) => pt.setHeight(i, heights[j]));
+    scene3d.refreshTerrain();
+    render();
+    const r = await terrainOp('build:terrain:heights', { indices, heights });
+    if (!r.ok && r.code !== 'stale') { indices.forEach((i, j) => pt.setHeight(i, before[j])); scene3d.refreshTerrain(); render(); }
+  }
+
+  async function terrainClick(p, shift) {
+    const pt = scene3d.pointTerrain;
+    if (!pt) return;
+    if (terrainTool === 'add') {
+      const near = pt.nearest(p.x, p.z);
+      const r = await terrainOp('build:terrain:add', { points: [p.x, p.y, p.z], colors: near.index >= 0 ? pt.col[near.index] : 0 });
+      if (r.ok) await loadTerrain([pt.count]);
+      return;
+    }
+    const { index } = pt.nearest(p.x, p.z);
+    if (index < 0) return;
+    const sel = pt.selected;
+    if (shift) scene3d.selectPoints(sel.includes(index) ? sel.filter((i) => i !== index) : [...sel, index]);
+    else scene3d.selectPoints([index]);
+    render();
+  }
+
+  async function removePoints() {
+    const pt = scene3d.pointTerrain;
+    if (!pt?.selected.length) return;
+    const r = await terrainOp('build:terrain:remove', { indices: pt.selected });
+    if (r.ok) await loadTerrain([]);
+  }
+
+  async function resizeTerrain(w, d) {
+    const r = await terrainOp('build:terrain:resize', { w, d });
+    if (r.ok) await loadTerrain([]);
+  }
+
+  async function setTerrainMode(mode) {
+    const r = await terrainOp('build:terrain:mode', { mode });
+    if (r.ok) await loadTerrain([]);
+  }
+
+  function setTab(next) {
+    tab = next;
+    if (tab === 'terrain') {
+      selectedId = null;
+      placingModel = null;
+      scene3d.select(null);
+      scene3d.setPlacing(false);
+      if (scene3d.cameraMode === 'walk') scene3d.setCameraMode('orbit');
+      scene3d.setTerrainTool(terrainTool);
+    } else {
+      scene3d.setTerrainTool(null);
+    }
+    render();
+  }
+
+  function setTerrainTool(id) {
+    terrainTool = id;
+    if (scene3d.cameraMode === 'walk') scene3d.setCameraMode('orbit');
+    tab = 'terrain';
+    scene3d.setTerrainTool(id);
     render();
   }
 
@@ -139,11 +242,27 @@ export function initBuilderView(root, { onClose }) {
         button('← До карти', 'btn--ghost', close)),
       el('div', { class: 'builder-modes builder-modes--2' },
         el('button', { type: 'button', class: `tool-btn${scene3d.cameraMode === 'orbit' ? ' tool-btn--active' : ''}`, onclick: () => { scene3d.setCameraMode('orbit'); render(); } }, '🛸 Огляд'),
-        el('button', { type: 'button', class: `tool-btn${scene3d.cameraMode === 'walk' ? ' tool-btn--active' : ''}`, onclick: () => { selectedId = null; placingModel = null; scene3d.setCameraMode('walk'); render(); } }, '🚶 Пішки')),
+        el('button', { type: 'button', class: `tool-btn${scene3d.cameraMode === 'walk' ? ' tool-btn--active' : ''}`, onclick: () => { selectedId = null; placingModel = null; tab = 'objects'; scene3d.setCameraMode('walk'); render(); } }, '🚶 Пішки')),
       scene3d.cameraMode === 'walk' ? el('p', { class: 'builder-hint' }, '🚶 Клікни в місто, щоб «стати» в нього. WASD — йти, мишка — дивитись, Shift — бігти, пробіл — стрибок. Esc — відпустити мишку.') : null,
+      el('div', { class: 'builder-modes builder-modes--2' },
+        el('button', { type: 'button', class: `tool-btn${tab === 'objects' ? ' tool-btn--active' : ''}`, onclick: () => setTab('objects') }, '📦 Предмети'),
+        el('button', { type: 'button', class: `tool-btn${tab === 'terrain' ? ' tool-btn--active' : ''}`, onclick: () => setTab('terrain') }, '⛰ Земля')),
       el('label', { class: 'field' }, el('span', {}, 'Папка моделей міста'), folder),
-      city.folder && !city.terrainUrl ? el('p', { class: 'hint' }, `У папці «${city.folder}» нема terrain.glb — поки рівна земля.`) : null,
 
+      ...(tab === 'terrain' && terrain ? terrainPanel({
+        scene3d, terrain, hasGlb: !!city.terrainUrl, tool: terrainTool, step: heightStep,
+        setTool: setTerrainTool, setMode: setTerrainMode, setHeights, removeSelected: removePoints, resize: resizeTerrain,
+        setStep: (v) => { heightStep = v; }, rerender: render,
+      }) : objectsPanel(selected, groups, modelName)),
+
+      message,
+      el('p', { class: 'hint builder-help' }, 'Камера: ліва кнопка — обертати, права — зсунути, колесико — наблизити. Усе зберігається само.'),
+      el('p', { class: 'hint' }, `Об'єктів у місті: ${city.objects.length}`),
+    ].filter(Boolean));
+  }
+
+  function objectsPanel(selected, groups, modelName) {
+    return [
       el('h3', { class: 'sheet__title' }, 'Моделі'),
       city.models.length
         ? el('div', { class: 'builder-library' }, [...groups].map(([name, models]) => el('div', {},
@@ -171,11 +290,7 @@ export function initBuilderView(root, { onClose }) {
             button('⬇ На землю', 'btn--ghost', () => applyAndSave(scene3d.dropToGround(selected.id)), 'Поставити на поверхню під ним'),
             button('🗑 Видалити', 'btn--bad', removeSelected, 'Клавіша Delete')))
         : el('p', { class: 'hint' }, 'Клікни по моделі в місті, щоб її рухати, повертати чи змінити розмір.'),
-
-      message,
-      el('p', { class: 'hint builder-help' }, 'Камера: ліва кнопка — обертати, права — зсунути, колесико — наблизити. Усе зберігається само.'),
-      el('p', { class: 'hint' }, `Об'єктів у місті: ${city.objects.length}`),
-    ].filter(Boolean));
+    ];
   }
 
   // Розмір: повзунок (0.05–20, «логарифмічний», щоб і дрібно, і великим кроком) + кнопки − / +.
@@ -211,6 +326,11 @@ export function initBuilderView(root, { onClose }) {
   document.addEventListener('keydown', (e) => {
     if (root.hidden || e.target.matches('input, textarea, select')) return;
     if (scene3d.cameraMode === 'walk') return;
+    if (tab === 'terrain') {
+      if (e.key === 'Delete') removePoints();
+      if (e.key === 'Escape') { scene3d.selectPoints([]); render(); }
+      return;
+    }
     const mode = MODES.find((m) => m.key === e.key.toLowerCase());
     if (mode && selectedId) { scene3d.setMode(mode.id); render(); }
     if (e.key === 'Delete') removeSelected();
@@ -219,6 +339,10 @@ export function initBuilderView(root, { onClose }) {
       if (placingModel) startPlacing(placingModel);
       else select(null);
     }
+  });
+
+  socket.on('build:terrainChanged', ({ locationId, version }) => {
+    if (city && terrain && locationId === city.locationId && version !== terrain.version) loadTerrain();
   });
 
   // Інший ДМ змінив це саме місто — перезавантажуємо.

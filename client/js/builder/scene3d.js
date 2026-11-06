@@ -5,6 +5,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { TransformControls } from 'three/addons/controls/TransformControls.js';
 import { WalkControls } from './walkControls.js';
+import { PointTerrain } from './terrainMesh.js';
 
 const DEFAULT_GROUND_SIZE = 200;   // метрів, якщо в міста ще нема свого рельєфу
 const loader = new GLTFLoader();
@@ -20,7 +21,8 @@ function loadModel(url) {
 export class CityScene3D {
   /**
    * @param container  елемент, куди вставити 3D
-   * @param handlers   { onPlace(point), onSelect(id|null), onTransformEnd(id, { x, y, z, rotY, scale }) }
+   * @param handlers   { onPlace(point), onSelect(id|null), onTransformEnd(id, { x, y, z, rotY, scale }),
+   *                    onTerrainClick(point, shift), onPointsMoved(indices, heights) }
    */
   constructor(container, handlers) {
     this.container = container;
@@ -63,9 +65,20 @@ export class CityScene3D {
     this.scene.add(this.gizmo.getHelper());
     this.gizmo.addEventListener('dragging-changed', (e) => {
       this.orbit.enabled = !e.value;
+      if (this.gizmo.object === this.pointHandle) {
+        if (e.value) this.#startPointDrag(); else this.#finishPointDrag();
+        return;
+      }
       if (!e.value) this.#finishTransform();
     });
-    this.gizmo.addEventListener('objectChange', () => this.#keepUniformScale());
+    this.gizmo.addEventListener('objectChange', () => {
+      if (this.gizmo.object === this.pointHandle) this.#movePoints();
+      else this.#keepUniformScale();
+    });
+    this.pointHandle = new THREE.Object3D();   // невидима «ручка» для вибраних точок землі
+    this.scene.add(this.pointHandle);
+    this.terrainTool = null;                    // null | 'select' | 'add'
+    this.pointTerrain = null;
     this.setMode('translate');
 
     this.raycaster = new THREE.Raycaster();
@@ -78,10 +91,19 @@ export class CityScene3D {
 
   // ---------- Рельєф ----------
 
-  async setTerrain(url) {
+  // url — terrain.glb з папки міста; points — земля з точок (дані з сервера). Без обох — рівна площина.
+  async setTerrain(url, points = null) {
     this.world.clear();
     this.groundMeshes = [];
-    if (url) {
+    this.pointTerrain = null;
+    if (this.gizmo.object === this.pointHandle) this.gizmo.detach();
+    if (points && !url) {
+      this.pointTerrain = new PointTerrain();
+      this.pointTerrain.setData(points);
+      this.pointTerrain.showDots(!!this.terrainTool);
+      this.world.add(this.pointTerrain.group);
+      this.groundMeshes.push(this.pointTerrain.mesh);
+    } else if (url) {
       const terrain = await loadModel(url);
       terrain.traverse((o) => { if (o.isMesh) { o.receiveShadow = true; this.groundMeshes.push(o); } });
       this.world.add(terrain);
@@ -172,9 +194,73 @@ export class CityScene3D {
 
   // Висота рельєфу в точці (x, z) — щоб модель стояла на землі.
   groundHeight(x, z) {
+    if (this.pointTerrain) return this.pointTerrain.heightAt(x, z) ?? 0;
     this.raycaster.set(new THREE.Vector3(x, 1000, z), new THREE.Vector3(0, -1, 0));
     const hit = this.raycaster.intersectObjects(this.groundMeshes, false)[0];
     return hit ? hit.point.y : 0;
+  }
+
+  // ---------- Редагування землі з точок ----------
+
+  // Інструмент землі: 'select' — вибирати й тягнути точки, 'add' — додавати точки кліком, null — вимкнено.
+  setTerrainTool(tool) {
+    this.terrainTool = tool;
+    this.pointTerrain?.showDots(!!tool);
+    if (tool) { this.select(null); this.setPlacing(false); }
+    if (!tool) this.selectPoints([]);
+    this.renderer.domElement.style.cursor = tool === 'add' ? 'copy' : '';
+  }
+
+  // Вибрати точки (індекси) — над ними з'являється стрілка вгору-вниз.
+  selectPoints(list) {
+    const t = this.pointTerrain;
+    if (!t) return;
+    t.setSelected(list);
+    if (!t.selected.length) {
+      if (this.gizmo.object === this.pointHandle) this.gizmo.detach();
+      return;
+    }
+    this.#placePointHandle();
+    this.gizmo.attach(this.pointHandle);
+    this.gizmo.setMode('translate');
+    this.gizmo.showX = false;
+    this.gizmo.showZ = false;
+    this.gizmo.showY = true;
+  }
+
+  // Висоти змінились ззовні (поле «висота», кнопки ▲▼) — перемалювати.
+  refreshTerrain() {
+    if (!this.pointTerrain) return;
+    this.pointTerrain.refreshHeights();
+    if (this.pointTerrain.selected.length) this.#placePointHandle();
+  }
+
+  #placePointHandle() {
+    const t = this.pointTerrain;
+    const c = new THREE.Vector3();
+    for (const i of t.selected) c.add(new THREE.Vector3(t.pos[i * 3], t.pos[i * 3 + 1], t.pos[i * 3 + 2]));
+    c.divideScalar(t.selected.length);
+    this.pointHandle.position.copy(c);
+  }
+
+  #startPointDrag() {
+    const t = this.pointTerrain;
+    this.pointDrag = { y0: this.pointHandle.position.y, heights: t.selected.map((i) => t.heightOf(i)) };
+  }
+
+  #movePoints() {
+    const t = this.pointTerrain;
+    if (!t || !this.pointDrag) return;
+    const dy = this.pointHandle.position.y - this.pointDrag.y0;
+    t.selected.forEach((i, j) => t.setHeight(i, this.pointDrag.heights[j] + dy));
+    t.refreshHeights();
+  }
+
+  #finishPointDrag() {
+    const t = this.pointTerrain;
+    if (!t || !this.pointDrag) return;
+    this.pointDrag = null;
+    this.handlers.onPointsMoved?.([...t.selected], t.selected.map((i) => t.heightOf(i)));
   }
 
   // ---------- Цикл малювання ----------
@@ -185,6 +271,7 @@ export class CityScene3D {
     this.cameraMode = mode;
     if (mode === 'walk') {
       this.select(null);
+      this.setTerrainTool(null);
       this.setPlacing(false);
       this.orbit.enabled = false;
       const t = this.orbit.target;
@@ -244,6 +331,11 @@ export class CityScene3D {
       if (!down || Math.hypot(e.clientX - down.x, e.clientY - down.y) > 4 || this.gizmo.dragging || this.gizmo.axis) { down = null; return; }
       down = null;
       this.#pointerRay(e);
+      if (this.terrainTool) {
+        const hit = this.raycaster.intersectObjects(this.groundMeshes, false)[0];
+        if (hit) this.handlers.onTerrainClick?.({ x: hit.point.x, y: hit.point.y, z: hit.point.z }, e.shiftKey);
+        return;
+      }
       if (this.placing) {
         const hit = this.raycaster.intersectObjects(this.groundMeshes, false)[0];
         if (hit) this.handlers.onPlace({ x: hit.point.x, y: hit.point.y, z: hit.point.z });

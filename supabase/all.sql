@@ -150,3 +150,11 @@ create table if not exists public.city_scenes (
   updated_at  timestamptz not null default now()
 );
 alter table public.city_scenes enable row level security;
+
+-- ===== 014_city_terrains.sql =====
+create table if not exists public.city_terrains (
+  location_id uuid        primary key references public.locations (id) on delete cascade,
+  data        jsonb       not null,
+  updated_at  timestamptz not null default now()
+);
+alter table public.city_terrains enable row level security;

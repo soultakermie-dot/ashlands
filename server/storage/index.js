@@ -38,6 +38,8 @@ stores.inventory = makeStore('inventory', [stores.characters, stores.items]);
 stores.roads = makeStore('roads', [stores.locations]);
 // 3D-сцена міста посилається на місто (локацію).
 stores.cityScenes = makeStore('cityScenes', [stores.locations]);
+// Земля 3D-міста (точки) посилається на місто.
+stores.cityTerrains = makeStore('cityTerrains', [stores.locations]);
 // Групи посилаються на персонажів.
 stores.groups = makeStore('groups', [stores.characters]);
 

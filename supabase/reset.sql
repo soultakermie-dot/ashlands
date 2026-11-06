@@ -9,6 +9,7 @@
 
 truncate table
   public.city_scenes,
+  public.city_terrains,
   public.dm_notes,
   public.groups,
   public.roads,

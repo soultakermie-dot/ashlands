@@ -64,3 +64,6 @@
 .builder-size__slider { width: 100%; accent-color: var(--accent); }
 .builder-size__value { min-width: 3.2rem; text-align: right; font-variant-numeric: tabular-nums; }
 .builder-modes--2 { grid-template-columns: 1fr 1fr; }
+.builder-terrain__row { display: flex; align-items: center; gap: 0.3rem; font-size: 0.85rem; }
+.builder-terrain__step { width: 4.5rem; }
+.builder-terrain__size { display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; }

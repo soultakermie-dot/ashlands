@@ -12,6 +12,10 @@ export function createApp() {
   // 3D-рушій Three.js (режим «Будівельник», 3D-міста) — з node_modules.
   app.use('/vendor/three', express.static(path.join(config.paths.root, 'node_modules', 'three'), { fallthrough: false }));
 
+  // Delaunator — з'єднує точки землі трикутниками (+ його залежність robust-predicates).
+  app.use('/vendor/delaunator', express.static(path.join(config.paths.root, 'node_modules', 'delaunator'), { fallthrough: false }));
+  app.use('/vendor/robust-predicates', express.static(path.join(config.paths.root, 'node_modules', 'robust-predicates'), { fallthrough: false }));
+
   // У режимі «файли» аватарки лежать у data/uploads/; із Supabase вони віддаються напряму звідти.
   if (!config.supabase.enabled) {
     app.use(UPLOADS_URL, express.static(LOCAL_UPLOADS_DIR, { fallthrough: false }));

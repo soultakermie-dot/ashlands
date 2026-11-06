@@ -9,7 +9,7 @@ export function handle(fn) {
       reply({ ok: true, ...(await fn(payload ?? {})) });
     } catch (err) {
       if (!(err instanceof GameError)) console.error('[socket]', err);
-      reply({ ok: false, error: err instanceof GameError ? err.message : 'Помилка сервера' });
+      reply({ ok: false, error: err instanceof GameError ? err.message : 'Помилка сервера', ...(err.code ? { code: err.code } : {}) });
     }
   };
 }
