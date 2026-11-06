@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { TransformControls } from 'three/addons/controls/TransformControls.js';
+import { WalkControls } from './walkControls.js';
 
 const DEFAULT_GROUND_SIZE = 200;   // метрів, якщо в міста ще нема свого рельєфу
 const loader = new GLTFLoader();
@@ -68,6 +69,9 @@ export class CityScene3D {
     this.setMode('translate');
 
     this.raycaster = new THREE.Raycaster();
+    this.walk = new WalkControls(this.camera, this.renderer.domElement, (x, z) => this.groundHeight(x, z));
+    this.cameraMode = 'orbit';
+    this.clock = new THREE.Clock();
     this.#bindPointer();
     new ResizeObserver(() => this.#resize()).observe(container);
   }
@@ -129,13 +133,35 @@ export class CityScene3D {
     else this.gizmo.detach();
   }
 
-  // translate — рух по землі, rotate — поворот навколо вертикалі, scale — розмір.
+  // translate — рух у всі боки й у висоту, rotate — поворот навколо вертикалі, scale — розмір.
   setMode(mode) {
     this.mode = mode;
     this.gizmo.setMode(mode);
     this.gizmo.showX = mode !== 'rotate';
     this.gizmo.showZ = mode !== 'rotate';
-    this.gizmo.showY = mode !== 'translate';
+    this.gizmo.showY = true;
+  }
+
+  // Поточне положення об'єкта (для збереження).
+  transformOf(id) {
+    const node = this.objects.get(id);
+    return node && { x: node.position.x, y: node.position.y, z: node.position.z, rotY: node.rotation.y, scale: node.scale.x };
+  }
+
+  // Змінити об'єкт напряму (кнопки «на землю», повзунок розміру).
+  applyTransform(id, patch) {
+    const node = this.objects.get(id);
+    if (!node) return null;
+    if (patch.y !== undefined) node.position.y = patch.y;
+    if (patch.scale !== undefined) node.scale.setScalar(Math.min(20, Math.max(0.05, patch.scale)));
+    if (patch.rotY !== undefined) node.rotation.y = patch.rotY;
+    return this.transformOf(id);
+  }
+
+  // Поставити об'єкт на землю під ним.
+  dropToGround(id) {
+    const node = this.objects.get(id);
+    return node ? this.applyTransform(id, { y: this.groundHeight(node.position.x, node.position.z) }) : null;
   }
 
   // Модель, яку зараз ставимо кліком (прицільний курсор).
@@ -153,13 +179,35 @@ export class CityScene3D {
 
   // ---------- Цикл малювання ----------
 
+  // Камера: 'orbit' — огляд згори (обертати, зсувати, наближати), 'walk' — пішки від першої особи.
+  setCameraMode(mode) {
+    if (mode === this.cameraMode) return;
+    this.cameraMode = mode;
+    if (mode === 'walk') {
+      this.select(null);
+      this.setPlacing(false);
+      this.orbit.enabled = false;
+      const t = this.orbit.target;
+      this.walk.enable(t.x, t.z + 8, t);
+    } else {
+      this.walk.disable();
+      this.orbit.enabled = true;
+      const p = this.camera.position;
+      this.orbit.target.set(p.x, this.groundHeight(p.x, p.z), p.z);
+      this.camera.position.set(p.x + 25, p.y + 25, p.z + 25);
+    }
+  }
+
   start() {
     if (this.running) return;
     this.running = true;
     this.#resize();
+    this.clock.getDelta();
     const loop = () => {
       if (!this.running) return;
-      this.orbit.update();
+      const dt = Math.min(0.1, this.clock.getDelta());
+      if (this.cameraMode === 'walk') this.walk.update(dt);
+      else this.orbit.update();
       this.renderer.render(this.scene, this.camera);
       requestAnimationFrame(loop);
     };
@@ -191,6 +239,7 @@ export class CityScene3D {
     let down = null;
     el.addEventListener('pointerdown', (e) => { down = { x: e.clientX, y: e.clientY }; });
     el.addEventListener('pointerup', (e) => {
+      if (this.cameraMode === 'walk') return;
       // Клік (а не обертання камери) і не по «ручках».
       if (!down || Math.hypot(e.clientX - down.x, e.clientY - down.y) > 4 || this.gizmo.dragging || this.gizmo.axis) { down = null; return; }
       down = null;
@@ -215,11 +264,10 @@ export class CityScene3D {
     node.scale.setScalar(s);
   }
 
-  // Відпустили «ручку»: після руху модель стає на землю; повідомляємо, щоб зберегти.
+  // Відпустили «ручку» — повідомляємо, щоб зберегти.
   #finishTransform() {
     const node = this.gizmo.object;
     if (!node) return;
-    if (this.mode === 'translate') node.position.y = this.groundHeight(node.position.x, node.position.z);
     this.handlers.onTransformEnd(node.userData.objectId, {
       x: node.position.x,
       y: node.position.y,

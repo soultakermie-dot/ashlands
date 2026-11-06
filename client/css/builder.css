@@ -58,3 +58,9 @@
 .is-building .editor-toolbar,
 .is-building .banners,
 .is-building .map-controls { display: none; }
+
+.builder-row { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+.builder-size { display: grid; grid-template-columns: auto auto 1fr auto auto; align-items: center; gap: 0.3rem; font-size: 0.85rem; }
+.builder-size__slider { width: 100%; accent-color: var(--accent); }
+.builder-size__value { min-width: 3.2rem; text-align: right; font-variant-numeric: tabular-nums; }
+.builder-modes--2 { grid-template-columns: 1fr 1fr; }
