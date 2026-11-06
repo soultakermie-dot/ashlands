@@ -1,0 +1,79 @@
+/* Жетони персонажів на карті. Розмір на екрані не залежить від наближення (як і мітки міст). */
+.map__tokens {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.token {
+  position: absolute;
+  display: flex;
+  flex-direction: column-reverse; /* ім'я над аватаркою */
+  align-items: center;
+  gap: 2px;
+  pointer-events: auto;
+  /* Як шпилька: низ аватарки — у точці персонажа, тож місто під жетоном лишається видно.
+     --fan-x/y розводять жетони, що стоять разом */
+  transform:
+    scale(var(--inv-scale))
+    translate(calc(-50% + var(--fan-x, 0px)), calc(-100% - 6px + var(--fan-y, 0px)));
+  transform-origin: 0 0;
+  transition: left 0.6s ease, top 0.6s ease, opacity 0.3s;
+  z-index: 1;
+}
+
+.token .avatar {
+  border-color: var(--text);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.7);
+}
+
+/* Хвостик шпильки під аватаркою */
+.token__avatar { position: relative; display: block; }
+.token__avatar::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -7px;
+  border: 6px solid transparent;
+  border-top-color: var(--text);
+  border-bottom: 0;
+  transform: translateX(-50%);
+}
+.token--mine .token__avatar::after { border-top-color: var(--ok); }
+
+.token__label {
+  padding: 0 6px;
+  border-radius: 3px;
+  background: rgba(26, 22, 18, 0.85);
+  font-size: 12px;
+  white-space: nowrap;
+  text-shadow: 0 1px 2px #000;
+}
+
+/* Мій персонаж */
+.token--mine { z-index: 3; }
+.token--mine .avatar { border-color: var(--ok); box-shadow: 0 0 0 3px rgba(143, 191, 106, 0.4), 0 2px 8px rgba(0, 0, 0, 0.7); }
+.token--mine .token__label { color: var(--ok); }
+
+/* Гравець зараз не в мережі */
+.token--offline { opacity: 0.45; }
+
+/* ДМ може тягати */
+.token--draggable { cursor: grab; }
+.token--dragging { cursor: grabbing; transition: none; z-index: 5; }
+.token--dragging .avatar { border-color: var(--accent); transform: scale(1.1); }
+
+/* Повідомлення над картою (наприклад, помилка переміщення) */
+.map-message {
+  position: absolute;
+  top: 4rem;
+  left: 50%;
+  z-index: 12;
+  transform: translateX(-50%);
+  padding: 0.4rem 0.9rem;
+  background: rgba(36, 30, 24, 0.95);
+  border: 1px solid var(--bad);
+  border-radius: 4px;
+  color: var(--bad);
+  font-size: 0.9rem;
+}

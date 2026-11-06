@@ -5,6 +5,7 @@ import { ROLES } from '../../services/users.js';
 import { handle } from '../handle.js';
 import { attachUser, currentUser, detachUser, kickUser, onlineUserIds, toSelf } from '../identity.js';
 import { broadcastLobby } from './accounts.js';
+import { scheduleTokens } from './tokens.js';
 
 export function registerAuth(io, socket) {
   const signIn = (user, token) => {
@@ -13,6 +14,7 @@ export function registerAuth(io, socket) {
     const self = toSelf(user);
     console.log(`[auth] ${user.login} увійшов (${user.role}${self.admitted ? '' : ', чекає допуску'})`);
     broadcastLobby(io);
+    scheduleTokens(io);
     return { token, user: self };
   };
 
@@ -39,6 +41,7 @@ export function registerAuth(io, socket) {
       await kickUser(io, user.id, '');
       console.log(`[auth] ${user.login} вийшов`);
       broadcastLobby(io);
+      scheduleTokens(io);
     }
     return {};
   }));
@@ -49,5 +52,6 @@ export function registerAuth(io, socket) {
     if (!userId) return;
     if (!onlineUserIds(io, socket).has(userId)) markAway(userId);
     broadcastLobby(io, socket);
+    scheduleTokens(io);
   });
 }

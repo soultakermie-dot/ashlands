@@ -51,6 +51,19 @@ export class MapView {
     this.render();
   }
 
+  // Точка екрана (clientX, clientY) → координати на карті.
+  screenToMap(clientX, clientY) {
+    const rect = this.root.getBoundingClientRect();
+    const { x, y, scale } = this.camera;
+    return { x: (clientX - rect.left - x) / scale, y: (clientY - rect.top - y) / scale };
+  }
+
+  // Обмежити точку межами карти.
+  clampToMap({ x, y }) {
+    const { mapWidth, mapHeight } = this.camera;
+    return { x: Math.min(mapWidth, Math.max(0, x)), y: Math.min(mapHeight, Math.max(0, y)) };
+  }
+
   zoomIn() { this.zoomBy(BUTTON_ZOOM); }
   zoomOut() { this.zoomBy(1 / BUTTON_ZOOM); }
 

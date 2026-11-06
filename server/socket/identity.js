@@ -3,7 +3,8 @@ import { isAdmitted } from '../services/admission.js';
 import { GameError } from '../services/errors.js';
 import { ROLES, findUserById } from '../services/users.js';
 
-export const DM_ROOM = 'dm';
+export const DM_ROOM = 'dm';      // усі ДМ
+export const GAME_ROOM = 'game';  // усі, хто зараз у грі (ДМ + допущені гравці)
 export const userRoom = (userId) => `user:${userId}`;
 
 // Актуальний акаунт підключення (завжди свіжі дані, а не копія з моменту входу).
@@ -26,13 +27,24 @@ export function attachUser(socket, user, token) {
   socket.data.token = token;
   socket.join(userRoom(user.id));
   if (user.role === ROLES.DM) socket.join(DM_ROOM);
+  if (canPlay(user)) socket.join(GAME_ROOM);
 }
 
 export function detachUser(socket) {
   if (socket.data.userId) socket.leave(userRoom(socket.data.userId));
   socket.leave(DM_ROOM);
+  socket.leave(GAME_ROOM);
   socket.data.userId = null;
   socket.data.token = null;
+}
+
+// Після зміни допуску: усі вкладки акаунта заходять у «гру» або виходять з неї.
+export function refreshGameRoom(io, user) {
+  for (const s of io.of('/').sockets.values()) {
+    if (s.data.userId !== user.id) continue;
+    if (canPlay(user)) s.join(GAME_ROOM);
+    else s.leave(GAME_ROOM);
+  }
 }
 
 // Id усіх акаунтів, які зараз на зв'язку (крім підключення exceptSocket).

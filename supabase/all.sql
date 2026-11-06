@@ -54,3 +54,7 @@ alter table public.app_meta enable row level security;
     insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
     values ('avatars', 'avatars', true, 524288, array['image/webp', 'image/png', 'image/jpeg'])
     on conflict (id) do nothing;
+
+-- ===== 006_character_positions.sql =====
+        alter table public.characters add column if not exists pos_x real;
+        alter table public.characters add column if not exists pos_y real;

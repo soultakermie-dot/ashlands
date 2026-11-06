@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="css/characters.css">
   <link rel="stylesheet" href="css/game.css">
   <link rel="stylesheet" href="css/map.css">
+  <link rel="stylesheet" href="css/tokens.css">
 </head>
 <body>
   <!-- Поки чекаємо на сервер -->
@@ -65,8 +66,11 @@
       <div class="map__world" data-map-world>
         <img class="map__image" data-map-image alt="Карта світу" draggable="false">
         <div class="map__layer" data-map-layer></div>
+        <div class="map__tokens" data-map-tokens></div>
       </div>
     </div>
+
+    <p class="map-message" data-map-message hidden></p>
 
     <div class="map-controls">
       <button type="button" class="map-controls__btn" data-zoom-in title="Наблизити">+</button>

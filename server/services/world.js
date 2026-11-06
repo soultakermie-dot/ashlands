@@ -22,6 +22,19 @@ const TEST_LOCATIONS = [
   { id: 'test-dungeon-2', type: 'dungeon', name: 'Склеп Попелу', x: 2420, y: 1560 },
 ];
 
+// Де з'являється новий персонаж (поки — біля першого тестового міста; на етапі 2 вибиратиме ДМ).
+const SPAWN = { x: 1180, y: 1060 };
+
 export function getWorld() {
   return { map: WORLD_MAP, locations: TEST_LOCATIONS };
+}
+
+export function getSpawnPoint() {
+  return { ...SPAWN };
+}
+
+// Чи точка в межах карти.
+export function isInsideMap(x, y) {
+  return Number.isFinite(x) && Number.isFinite(y)
+    && x >= 0 && y >= 0 && x <= WORLD_MAP.width && y <= WORLD_MAP.height;
 }

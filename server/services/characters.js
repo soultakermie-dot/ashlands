@@ -66,6 +66,8 @@ export async function createCharacter(user, { name, avatar }) {
     name: cleanName(name),
     avatarPath: null,
     status: CHARACTER_STATUS.PENDING,
+    x: null,                 // де стоїть на карті (з'явиться в стартовій точці, коли вийде на карту)
+    y: null,
     createdAt: new Date().toISOString(),
     reviewedAt: null,
   };
