@@ -4,11 +4,14 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Ashlands</title>
+  <link rel="icon" href="assets/images/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="css/base.css">
   <link rel="stylesheet" href="css/forms.css">
   <link rel="stylesheet" href="css/screens.css">
   <link rel="stylesheet" href="css/accounts.css">
   <link rel="stylesheet" href="css/characters.css">
+  <link rel="stylesheet" href="css/game.css">
+  <link rel="stylesheet" href="css/map.css">
 </head>
 <body>
   <!-- Поки чекаємо на сервер -->
@@ -56,14 +59,37 @@
     </section>
   </main>
 
-  <!-- Головний екран (тимчасовий, до карти) -->
-  <main class="splash" data-screen="home" hidden>
-    <h1>ASHLANDS</h1>
-    <section class="panel">
-      <p>Ви увійшли як <strong data-user-name></strong></p>
-      <p class="hint" data-user-role></p>
-      <button type="button" class="btn btn--ghost" data-logout>Вийти</button>
-    </section>
+  <!-- Гра: карта світу на весь екран -->
+  <main class="game" id="game-screen" data-screen="home" hidden>
+    <div class="map" data-map>
+      <div class="map__world" data-map-world>
+        <img class="map__image" data-map-image alt="Карта світу" draggable="false">
+        <div class="map__layer" data-map-layer></div>
+      </div>
+    </div>
+
+    <div class="map-controls">
+      <button type="button" class="map-controls__btn" data-zoom-in title="Наблизити">+</button>
+      <button type="button" class="map-controls__btn" data-zoom-out title="Віддалити">−</button>
+      <button type="button" class="map-controls__btn" data-zoom-fit title="Уся карта">⤢</button>
+    </div>
+
+    <div class="location-card" data-location-card hidden>
+      <button type="button" class="location-card__close" data-close title="Закрити">×</button>
+      <span class="location-card__type" data-location-type></span>
+      <h2 class="location-card__name" data-location-name></h2>
+      <p class="hint">Опис і дії з'являться на наступних етапах.</p>
+    </div>
+
+    <header class="topbar">
+      <span class="topbar__title">ASHLANDS</span>
+      <span class="topbar__character" data-topbar-character></span>
+      <span class="topbar__user"><strong data-user-name></strong> · <span data-user-role></span></span>
+      <button type="button" class="btn btn--small btn--ghost" data-sidebar-toggle aria-controls="sidebar">☰ Панель</button>
+      <button type="button" class="btn btn--small btn--ghost" data-logout>Вийти</button>
+    </header>
+
+    <aside class="sidebar" id="sidebar">
 
     <!-- Персонажі гравця -->
     <section class="panel panel--wide" id="characters-panel" hidden>
@@ -122,6 +148,7 @@
 
       <p class="hint">Примітки бачить тільки ДМ.</p>
     </section>
+    </aside>
   </main>
 
   <footer class="footer">

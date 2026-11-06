@@ -6,8 +6,11 @@ import { registerServerInfo } from './handlers/serverInfo.js';
 import { registerAuth } from './handlers/auth.js';
 import { registerAccounts, startAwayExpiry } from './handlers/accounts.js';
 import { registerCharacters } from './handlers/characters.js';
+import { registerWorld } from './handlers/world.js';
 
-const handlers = [registerPresence, registerServerInfo, registerAuth, registerAccounts, registerCharacters];
+const handlers = [
+  registerPresence, registerServerInfo, registerAuth, registerAccounts, registerCharacters, registerWorld,
+];
 
 // Найбільше повідомлення від клієнта (з запасом для аватарки до 512 КБ).
 const MAX_MESSAGE_BYTES = 1024 * 1024;

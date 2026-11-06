@@ -9,11 +9,19 @@ import { initUserBar } from './ui/userBar.js';
 import { initAccountsPanel } from './ui/accountsPanel.js';
 import { initCharactersPanel } from './ui/charactersPanel.js';
 import { initCharacterReviewPanel } from './ui/characterReviewPanel.js';
+import { initActiveCharacterBadge } from './ui/activeCharacterBadge.js';
+import { initSidebar } from './ui/sidebar.js';
+import { initWorldMap } from './ui/worldMap.js';
+
+const gameScreen = document.getElementById('game-screen');
 
 initConnectionStatus(socket, document.getElementById('connection-status'));
 initServerInfo(socket, document.getElementById('server-info'));
 initAuthScreen(document.getElementById('auth-screen'));
 initUserBar();
+initWorldMap(gameScreen);
+initSidebar(document.getElementById('sidebar'), gameScreen.querySelector('[data-sidebar-toggle]'));
+initActiveCharacterBadge(gameScreen.querySelector('[data-topbar-character]'));
 initAccountsPanel(document.getElementById('accounts-panel'));
 initCharactersPanel(document.getElementById('characters-panel'));
 initCharacterReviewPanel(document.getElementById('character-review-panel'));

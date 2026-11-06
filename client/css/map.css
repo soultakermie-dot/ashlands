@@ -1,0 +1,143 @@
+/* Карта світу, мітки локацій, кнопки зуму, картка локації. */
+.map {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: #101214;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.map--dragging { cursor: grabbing; }
+
+.map__world {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: 0 0;
+  will-change: transform;
+  --inv-scale: 1;
+}
+
+.map__image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.map__layer {
+  position: absolute;
+  inset: 0;
+}
+
+/* Мітка локації: точка + підпис; розмір на екрані не залежить від наближення */
+.location {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  background: none;
+  border: none;
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+  transform: translate(-50%, -9px) scale(var(--inv-scale));
+  transform-origin: 50% 9px;
+}
+
+.location__icon {
+  width: 18px;
+  height: 18px;
+  border: 3px solid #1a1612;
+  box-shadow: 0 0 0 2px var(--accent), 0 2px 6px rgba(0, 0, 0, 0.6);
+  transition: transform 0.15s;
+}
+
+.location--city .location__icon {
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.location--dungeon .location__icon {
+  background: #6b3a3a;
+  box-shadow: 0 0 0 2px #c96a5a, 0 2px 6px rgba(0, 0, 0, 0.6);
+  transform: rotate(45deg);
+}
+
+.location__label {
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: rgba(26, 22, 18, 0.8);
+  font-size: 13px;
+  white-space: nowrap;
+  text-shadow: 0 1px 2px #000;
+}
+
+.location:hover .location__icon,
+.location--selected .location__icon { transform: scale(1.3); }
+.location--dungeon:hover .location__icon,
+.location--dungeon.location--selected .location__icon { transform: rotate(45deg) scale(1.3); }
+.location--selected .location__label { background: var(--accent); color: var(--bg); text-shadow: none; }
+.location:focus-visible { outline: none; }
+.location:focus-visible .location__label { outline: 2px solid var(--accent); }
+
+/* Кнопки зуму */
+.map-controls {
+  position: absolute;
+  left: 1rem;
+  bottom: 2.5rem;
+  z-index: 10;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.map-controls__btn {
+  width: 2.5rem;
+  height: 2.5rem;
+  background: rgba(36, 30, 24, 0.92);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 1.3rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.map-controls__btn:hover { border-color: var(--accent); }
+
+/* Картка вибраної локації */
+.location-card {
+  position: absolute;
+  left: 50%;
+  bottom: 2.5rem;
+  z-index: 10;
+  width: min(360px, calc(100% - 2rem));
+  padding: 1rem 1.25rem;
+  transform: translateX(-50%);
+  background: rgba(36, 30, 24, 0.96);
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  text-align: center;
+}
+
+.location-card__type { font-size: 0.8rem; opacity: 0.7; letter-spacing: 0.1em; text-transform: uppercase; }
+.location-card__name { margin: 0.25rem 0 0.5rem; font-size: 1.4rem; letter-spacing: 0.05em; }
+.location-card .hint { margin: 0; }
+
+.location-card__close {
+  position: absolute;
+  top: 0.25rem;
+  right: 0.5rem;
+  background: none;
+  border: none;
+  color: var(--text);
+  font-size: 1.4rem;
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+.location-card__close:hover { opacity: 1; }

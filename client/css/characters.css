@@ -12,6 +12,7 @@
 }
 
 .avatar img { width: 100%; height: 100%; object-fit: cover; }
+.avatar--sm { width: 28px; height: 28px; font-size: 0.85rem; border-width: 1px; }
 .avatar--md { width: 48px; height: 48px; font-size: 1.3rem; }
 .avatar--lg { width: 96px; height: 96px; font-size: 2.5rem; }
 
