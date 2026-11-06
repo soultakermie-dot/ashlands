@@ -2,11 +2,12 @@
 import { GameError } from './errors.js';
 import { admit, isAdmitted, isAway, listAdmittedIds, revoke } from './admission.js';
 import { revokeUserSessions } from './auth.js';
-import { NOTE_MAX, ROLES, findUserById, isNewPlayer, markFirstAdmission, setDmNote } from './users.js';
+import { NOTE_MAX, ROLES, displayNameOf, findUserById, isNewPlayer, markFirstAdmission, setDmNote } from './users.js';
 
 const toLobbyEntry = (user, online) => ({
   id: user.id,
   login: user.login,
+  displayName: displayNameOf(user),
   isNew: isNewPlayer(user),
   note: user.dmNote ?? '',
   online,

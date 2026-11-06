@@ -118,7 +118,20 @@ export function reviewCharacter(characterId, approve) {
   return character;
 }
 
-// Для панелі ДМ: заявка разом з логіном власника.
+// Для панелі ДМ: персонаж разом з власником.
 export function toReviewEntry(c) {
-  return { ...toPublicCharacter(c), ownerLogin: findUserById(c.userId)?.login ?? '?' };
+  const owner = findUserById(c.userId);
+  return {
+    ...toPublicCharacter(c),
+    ownerLogin: owner?.login ?? '?',
+    ownerName: owner ? (owner.displayName || owner.login) : '?',
+    isActive: owner?.activeCharacterId === c.id,
+  };
+}
+
+// ДМ: усі персонажі всіх гравців (за власником, потім за датою).
+export function listAllCharacters() {
+  return list()
+    .map(toReviewEntry)
+    .sort((a, b) => a.ownerName.localeCompare(b.ownerName, 'uk') || a.createdAt.localeCompare(b.createdAt));
 }

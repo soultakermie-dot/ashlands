@@ -12,6 +12,7 @@ export const tables = {
     toRows: ({ users }) => users.map((u) => ({
       id: u.id,
       login: u.login,
+      display_name: u.displayName ?? u.login,
       password_hash: u.passwordHash,
       role: u.role,
       dm_note: u.dmNote ?? '',
@@ -23,6 +24,7 @@ export const tables = {
       users: rows.map((r) => ({
         id: r.id,
         login: r.login,
+        displayName: r.display_name || r.login,
         passwordHash: r.password_hash,
         role: r.role,
         dmNote: r.dm_note,

@@ -58,3 +58,11 @@ alter table public.app_meta enable row level security;
 -- ===== 006_character_positions.sql =====
         alter table public.characters add column if not exists pos_x real;
         alter table public.characters add column if not exists pos_y real;
+
+-- ===== 007_display_name.sql =====
+alter table public.users add column if not exists display_name text not null default '';
+update public.users set display_name = left(login, 30) where display_name = '';
+do $$ begin
+  alter table public.users add constraint users_display_name_len check (char_length(display_name) <= 30);
+exception when duplicate_object then null;
+end $$;

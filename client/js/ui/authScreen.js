@@ -6,6 +6,7 @@ export function initAuthScreen(root) {
   const tabs = root.querySelectorAll('[data-mode]');
   const submit = form.querySelector('button[type="submit"]');
   const repeatField = form.querySelector('[data-field="repeat"]');
+  const displayNameField = form.querySelector('[data-field="display-name"]');
   const messageBox = root.querySelector('.form-message');
 
   let mode = 'login';
@@ -14,7 +15,9 @@ export function initAuthScreen(root) {
     mode = next;
     for (const tab of tabs) tab.classList.toggle('tab--active', tab.dataset.mode === mode);
     repeatField.hidden = mode !== 'register';
+    displayNameField.hidden = mode !== 'register';
     form.elements.repeat.required = mode === 'register';
+    form.elements.displayName.required = mode === 'register';
     form.elements.password.autocomplete = mode === 'register' ? 'new-password' : 'current-password';
     submit.textContent = mode === 'register' ? 'Створити акаунт' : 'Увійти';
     showMessage('');
@@ -43,7 +46,7 @@ export function initAuthScreen(root) {
     showMessage('');
 
     if (mode === 'register') {
-      const res = await session.register(login, password);
+      const res = await session.register(login, password, form.elements.displayName.value);
       submit.disabled = false;
       if (!res.ok) return showMessage(res.error);
       // Акаунт створено — переходимо на вхід з уже вписаним логіном.

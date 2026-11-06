@@ -2,6 +2,7 @@
 import { socket } from '../net/socket.js';
 import { request } from '../net/request.js';
 import { session } from '../state/session.js';
+import { setBadge } from './sidebarNav.js';
 
 const NOTE_MAX = 200;
 
@@ -25,6 +26,7 @@ export function initAccountsPanel(root) {
 
   function render({ waiting, inGame }) {
     waitingCount.textContent = waiting.length;
+    setBadge('lobby', waiting.length);
     inGameCount.textContent = inGame.length;
     fillList(waitingEl, waiting, renderWaiting, 'Ніхто не проситься');
     fillList(inGameEl, inGame, renderInGame, 'У грі поки нікого');
@@ -56,7 +58,7 @@ export function initAccountsPanel(root) {
     if (!player.online) row.classList.add('player-row--away');
     row.querySelector('.player-row__actions').append(
       button('Вигнати', 'btn--bad', () => {
-        if (window.confirm(`Вигнати «${player.login}» з гри?`)) send('accounts:kick', { userId: player.id });
+        if (window.confirm(`Вигнати «${player.displayName}» з гри?`)) send('accounts:kick', { userId: player.id });
       }),
     );
     return row;
@@ -73,7 +75,11 @@ export function initAccountsPanel(root) {
 
     const name = document.createElement('span');
     name.className = 'player-row__name';
-    name.textContent = player.login;
+    name.textContent = player.displayName;
+    const loginHint = document.createElement('small');
+    loginHint.className = 'player-row__login';
+    loginHint.textContent = player.login;
+    name.append(loginHint);
     if (!player.online) name.title = 'Відійшов (допуск діє ще до 10 хв)';
 
     const actions = document.createElement('span');

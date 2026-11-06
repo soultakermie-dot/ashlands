@@ -1,22 +1,9 @@
-// Жетони на карті: tokens:list (усі в грі), tokens:move (ДМ). Розсилка змін — scheduleTokens().
+// Жетони на карті: tokens:list (усі в грі), tokens:move (ДМ).
 import { buildTokens, moveCharacter } from '../../services/tokens.js';
-import { handle } from '../handle.js';
-import { DM_ROOM, GAME_ROOM, currentUser, onlineUserIds, requireDm, requireInGame } from '../identity.js';
 import { ROLES } from '../../services/users.js';
-
-const BATCH_MS = 50;
-let timer = null;
-
-// Розіслати жетони всім у грі. Кілька змін поспіль (вхід, вибір персонажа...) зливаються в одну розсилку.
-export function scheduleTokens(io) {
-  if (timer) return;
-  timer = setTimeout(() => {
-    timer = null;
-    const online = onlineUserIds(io);
-    io.to(GAME_ROOM).except(DM_ROOM).emit('tokens:update', buildTokens(online));
-    io.to(DM_ROOM).emit('tokens:update', buildTokens(online, { forDm: true }));
-  }, BATCH_MS);
-}
+import { scheduleGameUpdate } from '../broadcast.js';
+import { handle } from '../handle.js';
+import { currentUser, onlineUserIds, requireDm, requireInGame } from '../identity.js';
 
 export function registerTokens(io, socket) {
   socket.on('tokens:list', handle(() => {
@@ -28,7 +15,7 @@ export function registerTokens(io, socket) {
   socket.on('tokens:move', handle(({ characterId, x, y }) => {
     requireDm(socket);
     moveCharacter(characterId, Number(x), Number(y));
-    scheduleTokens(io);
+    scheduleGameUpdate(io);
     return {};
   }));
 }

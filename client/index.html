@@ -13,6 +13,7 @@
   <link rel="stylesheet" href="css/game.css">
   <link rel="stylesheet" href="css/map.css">
   <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/modal.css">
 </head>
 <body>
   <!-- Поки чекаємо на сервер -->
@@ -42,6 +43,10 @@
         <label class="field" data-field="repeat" hidden>
           <span>Повторіть пароль</span>
           <input name="repeat" type="password" autocomplete="new-password" maxlength="100">
+        </label>
+        <label class="field" data-field="display-name" hidden>
+          <span>Ім'я або нік <span class="hint">(його бачитимуть інші гравці)</span></span>
+          <input name="displayName" autocomplete="nickname" maxlength="30">
         </label>
         <p class="form-message" hidden></p>
         <button type="submit" class="btn">Увійти</button>
@@ -94,10 +99,32 @@
     </header>
 
     <aside class="sidebar" id="sidebar">
+      <nav class="sidebar__nav">
+        <button type="button" class="nav-btn" data-open-view="characters" data-player-only>🧙 <span>Персонажі</span></button>
+        <button type="button" class="nav-btn" data-open-view="sheet" data-player-only>📜 <span>Лист персонажа</span></button>
+        <button type="button" class="nav-btn" data-open-view="inventory" data-player-only>🎒 <span>Інвентар</span></button>
+        <button type="button" class="nav-btn" data-open-view="players">👥 <span>Гравці</span></button>
 
-    <!-- Персонажі гравця -->
-    <section class="panel panel--wide" id="characters-panel" hidden>
-      <h2 class="panel__title">Мої персонажі</h2>
+        <div class="sidebar__dm" data-dm-only hidden>
+          <p class="sidebar__divider">ДМ</p>
+          <button type="button" class="nav-btn" data-open-view="lobby">🚪 <span>Вхід у гру</span><b class="nav-badge" data-badge="lobby" hidden></b></button>
+          <button type="button" class="nav-btn" data-open-view="new-characters">🧙 <span>Нові персонажі</span><b class="nav-badge" data-badge="new-characters" hidden></b></button>
+          <button type="button" class="nav-btn" data-open-view="all-characters">🗂 <span>Усі персонажі</span></button>
+        </div>
+      </nav>
+    </aside>
+
+    <!-- Вікно посередині екрана: показує розділ, вибраний у панелі -->
+    <div class="modal" data-modal hidden>
+      <div class="modal__window" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <header class="modal__header">
+          <h2 class="modal__title" id="modal-title" data-modal-title></h2>
+          <button type="button" class="modal__close" data-modal-close title="Закрити">✕</button>
+        </header>
+        <div class="modal__body">
+
+      <div data-view="characters" data-title="🧙 Мої персонажі" hidden>
+      <section class="panel panel--wide" id="characters-panel" hidden>
       <p class="hint" data-active-character></p>
       <p class="form-message" hidden></p>
       <ul class="character-list" data-characters></ul>
@@ -131,17 +158,25 @@
         </form>
       </div>
     </section>
+      </div>
 
-    <!-- Тільки для ДМ: нові персонажі -->
-    <section class="panel panel--wide" id="character-review-panel" hidden>
-      <h2 class="panel__title">Нові персонажі (<span data-pending-characters-count>0</span>)</h2>
-      <p class="form-message" hidden></p>
-      <ul class="character-list" data-pending-characters></ul>
-    </section>
+      <div data-view="sheet" data-title="📜 Лист персонажа" hidden>
+        <div data-character-sheet></div>
+      </div>
 
-    <!-- Тільки для ДМ -->
-    <section class="panel panel--wide" id="accounts-panel" hidden>
-      <h2 class="panel__title">Вхід у гру</h2>
+      <div data-view="inventory" data-title="🎒 Інвентар" hidden>
+        <div data-character-inventory></div>
+      </div>
+
+      <div data-view="players" data-title="👥 Гравці" hidden>
+        <section id="players-panel">
+          <p class="hint" data-players-summary></p>
+          <ul class="people-list" data-players></ul>
+        </section>
+      </div>
+
+      <div data-view="lobby" data-title="🚪 Вхід у гру" hidden>
+      <section class="panel panel--wide" id="accounts-panel" hidden>
       <p class="form-message" hidden></p>
 
       <h3 class="panel__subtitle">Хочуть приєднатися (<span data-waiting-count>0</span>)</h3>
@@ -152,7 +187,26 @@
 
       <p class="hint">Примітки бачить тільки ДМ.</p>
     </section>
-    </aside>
+      </div>
+
+      <div data-view="new-characters" data-title="🧙 Нові персонажі" hidden>
+      <section class="panel panel--wide" id="character-review-panel" hidden>
+      <p class="hint">Чекають підтвердження: <span data-pending-characters-count>0</span></p>
+      <p class="form-message" hidden></p>
+      <ul class="character-list" data-pending-characters></ul>
+    </section>
+      </div>
+
+      <div data-view="all-characters" data-title="🗂 Усі персонажі" hidden>
+        <section id="all-characters-panel">
+          <p class="hint">Клік по персонажу — його лист та інвентар.</p>
+          <ul class="character-list" data-all-characters></ul>
+        </section>
+      </div>
+
+        </div>
+      </div>
+    </div>
   </main>
 
   <footer class="footer">

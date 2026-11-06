@@ -8,10 +8,11 @@ import { registerAccounts, startAwayExpiry } from './handlers/accounts.js';
 import { registerCharacters } from './handlers/characters.js';
 import { registerWorld } from './handlers/world.js';
 import { registerTokens } from './handlers/tokens.js';
+import { registerPlayers } from './handlers/players.js';
 
 const handlers = [
   registerPresence, registerServerInfo, registerAuth, registerAccounts, registerCharacters, registerWorld,
-  registerTokens,
+  registerTokens, registerPlayers,
 ];
 
 // Найбільше повідомлення від клієнта (з запасом для аватарки до 512 КБ).

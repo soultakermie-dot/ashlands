@@ -1,6 +1,7 @@
 // Акаунти: пошук, створення, ролі, примітки ДМ.
 import crypto from 'node:crypto';
 import { stores } from '../storage/index.js';
+import { GameError } from './errors.js';
 import { hashPassword } from './passwords.js';
 
 export const ROLES = { PLAYER: 'player', DM: 'dm' };
@@ -27,10 +28,29 @@ export function findUserById(id) {
   return list().find((u) => u.id === id) ?? null;
 }
 
-export function createUser(login, password, role = ROLES.PLAYER) {
+// Ім'я або нік, яке бачать інші. Може повторюватись.
+export const DISPLAY_NAME_MIN = 2;
+export const DISPLAY_NAME_MAX = 30;
+
+export function cleanDisplayName(name) {
+  if (typeof name !== 'string') throw new GameError('Вкажіть ім\'я або нік');
+  const clean = name.normalize('NFC').trim().replace(/\s+/g, ' ');
+  const length = [...clean].length;
+  if (length < DISPLAY_NAME_MIN || length > DISPLAY_NAME_MAX) {
+    throw new GameError(`Ім'я або нік: від ${DISPLAY_NAME_MIN} до ${DISPLAY_NAME_MAX} символів`);
+  }
+  if (/[\p{C}<>]/u.test(clean)) throw new GameError('Ім\'я містить недозволені символи');
+  return clean;
+}
+
+// Ім'я для показу (у старих записах без імені — логін).
+export const displayNameOf = (user) => user.displayName || user.login;
+
+export function createUser(login, password, displayName, role = ROLES.PLAYER) {
   const user = {
     id: crypto.randomUUID(),
     login: normalizeLogin(login),
+    displayName: cleanDisplayName(displayName),
     passwordHash: hashPassword(password),
     role,
     dmNote: '',              // примітка, яку бачить і пише тільки ДМ

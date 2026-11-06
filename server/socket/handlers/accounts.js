@@ -5,7 +5,7 @@ import { buildLobby, letIn, sendToLogin, updateNote } from '../../services/accou
 import { findUserById } from '../../services/users.js';
 import { handle } from '../handle.js';
 import { DM_ROOM, kickUser, onlineUserIds, pushSelf, refreshGameRoom, requireDm } from '../identity.js';
-import { scheduleTokens } from './tokens.js';
+import { scheduleGameUpdate } from '../broadcast.js';
 
 // Розіслати всім ДМ свіжий стан: хто проситься, хто в грі.
 export function broadcastLobby(io, exceptSocket = null) {
@@ -19,7 +19,7 @@ export function startAwayExpiry(io) {
     if (!expired.length) return;
     for (const id of expired) console.log(`[accounts] ${findUserById(id)?.login ?? id}: відсутній довше ліміту, допуск знято`);
     broadcastLobby(io);
-    scheduleTokens(io);
+    scheduleGameUpdate(io);
   }, config.admission.expiryCheckMs).unref();
 }
 
@@ -31,7 +31,7 @@ export function registerAccounts(io, socket) {
     await action(payload);
     if (label) console.log(`[accounts] ${dm.login}: ${label} ${login}`);
     broadcastLobby(io);
-    scheduleTokens(io);
+    scheduleGameUpdate(io);
     return {};
   });
 

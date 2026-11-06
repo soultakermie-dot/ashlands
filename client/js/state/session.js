@@ -51,7 +51,7 @@ export const session = {
   },
 
   // Реєстрація лише створює акаунт — увійти треба окремо.
-  register: (login, password) => request('auth:register', { login, password }),
+  register: (login, password, displayName) => request('auth:register', { login, password, displayName }),
 
   async login(login, password) {
     const res = await request('auth:login', { login, password });

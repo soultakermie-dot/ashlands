@@ -3,6 +3,7 @@ import { characters } from '../state/characters.js';
 import { session } from '../state/session.js';
 import { createAvatar } from './avatar.js';
 import { initCharacterForm } from './characterForm.js';
+import { openCharacterView } from './characterDetails.js';
 
 const STATUS_TEXT = {
   pending: 'Чекає підтвердження ДМ',
@@ -63,6 +64,10 @@ export function initCharactersPanel(root) {
 
     const actions = document.createElement('span');
     actions.className = 'character-card__actions';
+    actions.append(
+      button('📜', 'btn--ghost', () => openCharacterView('sheet', c), 'Лист персонажа'),
+      button('🎒', 'btn--ghost', () => openCharacterView('inventory', c), 'Інвентар'),
+    );
     if (c.status === 'approved' && !isActive) {
       actions.append(button('Вибрати', 'btn--ok', () => run(() => characters.select(c.id))));
     }
@@ -74,11 +79,12 @@ export function initCharactersPanel(root) {
     return li;
   }
 
-  function button(label, css, onClick) {
+  function button(label, css, onClick, title = '') {
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = `btn btn--small ${css}`;
     btn.textContent = label;
+    btn.title = title;
     btn.addEventListener('click', onClick);
     return btn;
   }

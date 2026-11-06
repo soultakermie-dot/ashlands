@@ -12,6 +12,11 @@ import { initCharacterReviewPanel } from './ui/characterReviewPanel.js';
 import { initActiveCharacterBadge } from './ui/activeCharacterBadge.js';
 import { initSidebar } from './ui/sidebar.js';
 import { initWorldMap } from './ui/worldMap.js';
+import { initModal } from './ui/modal.js';
+import { initSidebarNav } from './ui/sidebarNav.js';
+import { initCharacterDetails } from './ui/characterDetails.js';
+import { initPlayersPanel } from './ui/playersPanel.js';
+import { initAllCharactersPanel } from './ui/allCharactersPanel.js';
 
 const gameScreen = document.getElementById('game-screen');
 
@@ -21,6 +26,11 @@ initAuthScreen(document.getElementById('auth-screen'));
 initUserBar();
 initWorldMap(gameScreen);
 initSidebar(document.getElementById('sidebar'), gameScreen.querySelector('[data-sidebar-toggle]'));
+initModal(gameScreen.querySelector('[data-modal]'));
+initSidebarNav(document.getElementById('sidebar'));
+initCharacterDetails(gameScreen.querySelector('[data-modal]'));
+initPlayersPanel(document.getElementById('players-panel'));
+initAllCharactersPanel(document.getElementById('all-characters-panel'));
 initActiveCharacterBadge(gameScreen.querySelector('[data-topbar-character]'));
 initAccountsPanel(document.getElementById('accounts-panel'));
 initCharactersPanel(document.getElementById('characters-panel'));

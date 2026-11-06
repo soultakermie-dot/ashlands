@@ -1,12 +1,12 @@
 // Персонажі: characters:mine / create / delete / select (гравець), characters:pending / review (ДМ).
 import {
-  createCharacter, deleteCharacter, findCharacter, listCharactersOf, listPendingCharacters,
+  createCharacter, deleteCharacter, findCharacter, listAllCharacters, listCharactersOf, listPendingCharacters,
   reviewCharacter, selectCharacter, toPublicCharacter, toReviewEntry,
 } from '../../services/characters.js';
 import { findUserById } from '../../services/users.js';
 import { handle } from '../handle.js';
 import { DM_ROOM, requireDm, requireInGame, userRoom } from '../identity.js';
-import { scheduleTokens } from './tokens.js';
+import { scheduleGameUpdate } from '../broadcast.js';
 
 // Персонажі гравця + хто вибраний.
 function mineOf(user) {
@@ -36,6 +36,7 @@ export function registerCharacters(io, socket) {
     console.log(`[characters] ${user.login} створив «${character.name}» (чекає ДМ)`);
     pushMine(io, user.id);
     broadcastPending(io);
+    scheduleGameUpdate(io);
     return { character: toPublicCharacter(character) };
   }));
 
@@ -46,7 +47,7 @@ export function registerCharacters(io, socket) {
     console.log(`[characters] ${user.login} видалив «${name}»`);
     pushMine(io, user.id);
     broadcastPending(io);
-    scheduleTokens(io);
+    scheduleGameUpdate(io);
     return {};
   }));
 
@@ -54,8 +55,13 @@ export function registerCharacters(io, socket) {
     const user = requireInGame(socket);
     selectCharacter(user, characterId ?? null);
     pushMine(io, user.id);
-    scheduleTokens(io);
+    scheduleGameUpdate(io);
     return {};
+  }));
+
+  socket.on('characters:all', handle(() => {
+    requireDm(socket);
+    return { characters: listAllCharacters() };
   }));
 
   socket.on('characters:pending', handle(() => {
@@ -69,7 +75,7 @@ export function registerCharacters(io, socket) {
     console.log(`[characters] ${dm.login}: ${approve === true ? 'підтвердив' : 'відхилив'} «${character.name}»`);
     pushMine(io, character.userId);
     broadcastPending(io);
-    scheduleTokens(io);
+    scheduleGameUpdate(io);
     return {};
   }));
 }

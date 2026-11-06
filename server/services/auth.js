@@ -40,10 +40,10 @@ function openSession(user) {
 }
 
 // Реєстрація лише створює акаунт; увійти треба окремо.
-export function register(login, password) {
+export function register(login, password, displayName) {
   validate(login, password);
   if (findUserByLogin(login)) throw new GameError('Такий логін уже зайнятий');
-  return createUser(login, password);
+  return createUser(login, password, displayName);
 }
 
 export function login(login, password) {

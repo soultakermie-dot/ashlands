@@ -3,6 +3,7 @@ import { socket } from '../net/socket.js';
 import { request } from '../net/request.js';
 import { session } from '../state/session.js';
 import { createAvatar } from './avatar.js';
+import { setBadge } from './sidebarNav.js';
 
 export function initCharacterReviewPanel(root) {
   const listEl = root.querySelector('[data-pending-characters]');
@@ -11,6 +12,7 @@ export function initCharacterReviewPanel(root) {
 
   function render(list) {
     countEl.textContent = list.length;
+    setBadge('new-characters', list.length);
     if (!list.length) {
       const empty = document.createElement('li');
       empty.className = 'hint';
@@ -31,7 +33,7 @@ export function initCharacterReviewPanel(root) {
     name.textContent = c.name;
     const owner = document.createElement('span');
     owner.className = 'character-card__status';
-    owner.textContent = `гравець: ${c.ownerLogin}`;
+    owner.textContent = `гравець: ${c.ownerName}`;
     info.append(name, owner);
 
     const actions = document.createElement('span');

@@ -1,7 +1,7 @@
 // Хто сидить за підключенням, які в нього права, і в яких «кімнатах» (групах розсилки) воно.
 import { isAdmitted } from '../services/admission.js';
 import { GameError } from '../services/errors.js';
-import { ROLES, findUserById } from '../services/users.js';
+import { ROLES, displayNameOf, findUserById } from '../services/users.js';
 
 export const DM_ROOM = 'dm';      // усі ДМ
 export const GAME_ROOM = 'game';  // усі, хто зараз у грі (ДМ + допущені гравці)
@@ -18,7 +18,7 @@ export const canPlay = (user) => user.role === ROLES.DM || isAdmitted(user.id);
 
 // Те, що користувач знає сам про себе.
 export function toSelf(user) {
-  return { id: user.id, login: user.login, role: user.role, admitted: canPlay(user) };
+  return { id: user.id, login: user.login, displayName: displayNameOf(user), role: user.role, admitted: canPlay(user) };
 }
 
 export function attachUser(socket, user, token) {
