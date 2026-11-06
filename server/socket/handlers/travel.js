@@ -10,6 +10,7 @@ import {
   pauseGame, rejectRequest, resumeGame, resumeTravel, setApprovalRequired, startTravel, tickTravel,
 } from '../../services/travel.js';
 import { groupOf } from '../../services/groups.js';
+import { broadcastClock } from './clock.js';
 import { scheduleGameUpdate } from '../broadcast.js';
 import { handle } from '../handle.js';
 import { requireDm, requireInGame, userRoom } from '../identity.js';
@@ -58,8 +59,8 @@ export function registerTravel(io, socket) {
   socket.on('travel:pause', handle(({ characterId }) => { requireDm(socket); notInGroup(characterId); pauseTravel(characterId); return done(); }));
   socket.on('travel:resume', handle(({ characterId }) => { requireDm(socket); notInGroup(characterId); resumeTravel(characterId); return done(); }));
 
-  socket.on('travel:pauseGame', handle(() => { const dm = requireDm(socket); pauseGame(); console.log(`[travel] ${dm.login}: ПАУЗА гри`); return done(); }));
-  socket.on('travel:resumeGame', handle(() => { const dm = requireDm(socket); resumeGame(); console.log(`[travel] ${dm.login}: гра продовжується`); return done(); }));
+  socket.on('travel:pauseGame', handle(() => { const dm = requireDm(socket); pauseGame(); broadcastClock(io); console.log(`[travel] ${dm.login}: ПАУЗА гри`); return done(); }));
+  socket.on('travel:resumeGame', handle(() => { const dm = requireDm(socket); resumeGame(); broadcastClock(io); console.log(`[travel] ${dm.login}: гра продовжується`); return done(); }));
   socket.on('travel:cancel', handle(({ characterId }) => { requireDm(socket); cancelTravelById(characterId); return done(); }));
   socket.on('travel:approve', handle(({ characterId }) => { requireDm(socket); approveRequest(characterId); return done(); }));
   socket.on('travel:reject', handle(({ characterId }) => { requireDm(socket); rejectRequest(characterId); return done(); }));

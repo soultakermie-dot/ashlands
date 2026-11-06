@@ -43,7 +43,7 @@ export function initDicePanel(root, toastRoot) {
 
   function renderLog(log) {
     if (!log.length) { list.replaceChildren(el('li', { class: 'hint' }, 'Ще ніхто не кидав')); return; }
-    list.replaceChildren(...[...log].reverse().map(rollRow));
+    list.replaceChildren(...[...log].reverse().map((e) => rollRow(e)));
   }
 
   // Спливаюче повідомлення про новий кидок.

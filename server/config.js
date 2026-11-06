@@ -30,6 +30,11 @@ export const config = {
     // Для тестів: TRAVEL_TIME_SCALE=0.01 — усі подорожі в 100 разів швидші.
     timeScale: Number(process.env.TRAVEL_TIME_SCALE) || 1,
   },
+  clock: {
+    // Доба = 1 реальна година: 1 ігрова хвилина = 2.5 реальної секунди. Швидкість ДМ зможе міняти на етапі 11.
+    // Для тестів: CLOCK_MS_PER_MINUTE=10 — доба за 14 секунд.
+    realMsPerGameMinute: Number(process.env.CLOCK_MS_PER_MINUTE) || 2500,
+  },
   groups: {
     // Запросити в групу можна того, хто ближче за це.
     inviteRadiusM: 300,

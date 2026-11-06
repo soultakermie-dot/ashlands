@@ -28,6 +28,8 @@ import { initGroupsDmPanel } from './ui/groupsDmPanel.js';
 import { initGamePauseControl } from './ui/gamePauseControl.js';
 import { initDicePanel } from './ui/dicePanel.js';
 import { initNotesPanel } from './ui/notesPanel.js';
+import { initClockDisplay } from './ui/clockDisplay.js';
+import { initClockControl } from './ui/clockControl.js';
 import { groupsState } from './state/groups.js';
 import { setBadge } from './ui/sidebarNav.js';
 
@@ -54,6 +56,10 @@ initGroupPanel(gameScreen.querySelector('[data-group-panel]'));
 initGroupsDmPanel(gameScreen.querySelector('[data-groups-dm-panel]'));
 initDicePanel(gameScreen.querySelector('[data-dice-panel]'), gameScreen.querySelector('[data-dice-toast]'));
 initNotesPanel(gameScreen.querySelector('[data-notes-panel]'));
+initClockDisplay(gameScreen.querySelector('[data-clock]'), gameScreen.querySelector('[data-map-night]'));
+initClockControl(gameScreen.querySelector('[data-clock-control]'), {
+  onMessage: (text) => { const m = gameScreen.querySelector('[data-map-message]'); m.textContent = text; m.hidden = !text; },
+});
 initGamePauseControl(gameScreen.querySelector('[data-game-pause]'), {
   onMessage: (text) => { const m = gameScreen.querySelector('[data-map-message]'); m.textContent = text; m.hidden = !text; },
 });

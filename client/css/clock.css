@@ -1,0 +1,24 @@
+/* Годинник: верхня панель, затемнення карти вночі, керування ДМ. */
+.topbar__clock {
+  padding: 0.2rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Нічна темрява над картою (мітки й жетони лишаються яскравими — вони вище) */
+.map__night {
+  position: absolute;
+  inset: 0;
+  background: #0a0e23;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 2s linear;
+}
+
+.clock-dm { margin-top: 0.4rem; }
+.clock-control { display: grid; gap: 0.35rem; }
+.clock-control .btn { width: 100%; }
+.clock-form { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem; margin-top: 0.4rem; font-size: 0.85rem; }

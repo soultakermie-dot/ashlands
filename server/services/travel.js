@@ -11,6 +11,7 @@ import { GameError } from './errors.js';
 import { dist, lengthOf, pointAt, project, splitAt } from './geometry.js';
 import { ensurePlaced } from './placement.js';
 import { findLocation } from './world.js';
+import { freezeForGamePause, unfreezeAfterGamePause } from './clock.js';
 
 const AT_LOCATION_PX = 20;   // ближче за це — персонаж «у місті»
 
@@ -248,6 +249,7 @@ export function resumeTravel(characterId, now = Date.now()) {
 
 export function pauseGame(now = Date.now()) {
   if (isGamePaused()) throw new GameError('Гра вже на паузі');
+  freezeForGamePause(now);
   settings().gamePaused = true;
   stores.worldSettings.save();
   for (const c of stores.characters.data.characters) pauseCharacterTravel(c, 'game', now);
@@ -256,6 +258,7 @@ export function pauseGame(now = Date.now()) {
 export function resumeGame(now = Date.now()) {
   if (!isGamePaused()) throw new GameError('Гра й так іде');
   settings().gamePaused = false;
+  unfreezeAfterGamePause(now);
   stores.worldSettings.save();
   for (const c of stores.characters.data.characters) resumeCharacterTravel(c, 'game', now);
 }

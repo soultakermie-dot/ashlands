@@ -20,6 +20,7 @@
   <link rel="stylesheet" href="css/groups.css">
   <link rel="stylesheet" href="css/dice.css">
   <link rel="stylesheet" href="css/notes.css">
+  <link rel="stylesheet" href="css/clock.css">
 </head>
 <body>
   <!-- Поки чекаємо на сервер -->
@@ -77,6 +78,7 @@
       <div class="map__world" data-map-world>
         <img class="map__image" data-map-image alt="Карта світу" draggable="false">
         <svg class="map__roads" data-map-roads xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"></svg>
+        <div class="map__night" data-map-night></div>
         <div class="map__layer" data-map-layer></div>
         <div class="map__handles" data-map-handles></div>
         <svg class="map__routes" data-map-routes xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"></svg>
@@ -111,6 +113,7 @@
       <div class="editor-toolbar__tools" data-editor-tools></div>
       <p class="editor-toolbar__hint" data-editor-hint hidden></p>
       <div class="game-pause" data-game-pause hidden></div>
+      <div class="clock-dm" data-clock-control hidden></div>
       <div class="travel-dm" data-travel-dm hidden>
         <label class="travel-dm__toggle"><input type="checkbox" data-travel-approval> 🙋 Рух гравців — лише з дозволом</label>
         <ul class="travel-dm__requests" data-travel-requests hidden></ul>
@@ -128,6 +131,7 @@
         <button type="button" class="mode-switch__btn" data-set-mode="game">🎲 Ігровий</button>
         <button type="button" class="mode-switch__btn" data-set-mode="creative">🛠 Творчий</button>
       </div>
+      <span class="topbar__clock" data-clock hidden></span>
       <span class="topbar__character" data-topbar-character></span>
       <span class="topbar__user"><strong data-user-name></strong> · <span data-user-role></span></span>
       <button type="button" class="btn btn--small btn--ghost" data-sidebar-toggle aria-controls="sidebar">☰ Панель</button>
