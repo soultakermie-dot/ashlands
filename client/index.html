@@ -19,6 +19,7 @@
   <link rel="stylesheet" href="css/travel.css">
   <link rel="stylesheet" href="css/groups.css">
   <link rel="stylesheet" href="css/dice.css">
+  <link rel="stylesheet" href="css/notes.css">
 </head>
 <body>
   <!-- Поки чекаємо на сервер -->
@@ -149,6 +150,7 @@
           <button type="button" class="nav-btn" data-open-view="all-characters">🗂 <span>Усі персонажі</span></button>
           <button type="button" class="nav-btn" data-open-view="groups">⚑ <span>Групи</span><b class="nav-badge" data-badge="groups" hidden></b></button>
           <button type="button" class="nav-btn" data-open-view="items">🧪 <span>Предмети</span></button>
+          <button type="button" class="nav-btn" data-open-view="notes">📝 <span>Нотатки</span></button>
         </div>
       </nav>
     </aside>
@@ -213,6 +215,10 @@
 
       <div data-view="groups" data-title="⚑ Групи" hidden>
         <section data-groups-dm-panel></section>
+      </div>
+
+      <div data-view="notes" data-title="📝 Нотатки ДМ" hidden>
+        <section data-notes-panel></section>
       </div>
 
       <div data-view="dice" data-title="🎲 Кубики" hidden>

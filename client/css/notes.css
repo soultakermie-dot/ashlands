@@ -1,0 +1,7 @@
+/* Нотатки ДМ. */
+.notes { display: grid; gap: 0.75rem; margin-top: 0.75rem; }
+.note { display: grid; gap: 0.4rem; padding: 0.6rem; border: 1px solid var(--border); border-radius: 8px; }
+.note__head { display: flex; gap: 0.4rem; }
+.note__title { font-weight: bold; }
+.note__body { resize: vertical; min-height: 5rem; }
+.note__status { font-size: 0.75rem; text-align: right; min-height: 1em; }
