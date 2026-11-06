@@ -4,45 +4,14 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Ashlands</title>
-  <style>
-    body {
-      margin: 0;
-      min-height: 100vh;
-      display: grid;
-      place-items: center;
-      background: #1a1612;
-      color: #d8c8a8;
-      font-family: Georgia, serif;
-      text-align: center;
-    }
-    h1 { font-size: 4rem; letter-spacing: 0.2em; margin: 0; }
-    #status { opacity: 0.7; margin-top: 1rem; }
-    .ok { color: #8fbf6a; }
-    .bad { color: #c96a5a; }
-  </style>
+  <link rel="stylesheet" href="css/base.css">
 </head>
 <body>
-  <main>
+  <main class="splash">
     <h1>ASHLANDS</h1>
-    <p id="status" class="bad">Підключення до сервера...</p>
+    <p id="connection-status" class="status status--bad">Підключення до сервера...</p>
   </main>
 
-  <script src="/socket.io/socket.io.js"></script>
-  <script>
-    const status = document.getElementById('status');
-    const socket = io();
-
-    socket.on('connect', () => {
-      status.className = 'ok';
-      status.textContent = 'Підключено до сервера';
-    });
-    socket.on('online', (count) => {
-      status.textContent = `Підключено до сервера · онлайн: ${count}`;
-    });
-    socket.on('disconnect', () => {
-      status.className = 'bad';
-      status.textContent = 'Зв\'язок втрачено, перепідключаюсь...';
-    });
-  </script>
+  <script type="module" src="js/main.js"></script>
 </body>
 </html>

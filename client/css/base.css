@@ -1,0 +1,32 @@
+/* Базові стилі: кольори, шрифти, загальний вигляд. */
+:root {
+  --bg: #1a1612;
+  --text: #d8c8a8;
+  --ok: #8fbf6a;
+  --bad: #c96a5a;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: Georgia, serif;
+}
+
+.splash {
+  min-height: 100vh;
+  display: grid;
+  place-content: center;
+  text-align: center;
+}
+
+.splash h1 {
+  font-size: 4rem;
+  letter-spacing: 0.2em;
+  margin: 0;
+}
+
+.status { opacity: 0.8; margin-top: 1rem; }
+.status--ok { color: var(--ok); }
+.status--bad { color: var(--bad); }

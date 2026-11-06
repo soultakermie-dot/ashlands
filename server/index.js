@@ -1,30 +1,12 @@
-import express from 'express';
+// Точка входу: збирає сервер з частин і запускає його.
 import { createServer } from 'node:http';
-import { Server } from 'socket.io';
-import { fileURLToPath } from 'node:url';
-import path from 'node:path';
+import { config } from './config.js';
+import { createApp } from './http/app.js';
+import { createSocketServer } from './socket/index.js';
 
-const PORT = process.env.PORT || 3000;
-const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
+const httpServer = createServer(createApp());
+createSocketServer(httpServer);
 
-const app = express();
-const httpServer = createServer(app);
-const io = new Server(httpServer);
-
-// Віддаємо інтерфейс гри (папка client/)
-app.use(express.static(path.join(ROOT, 'client')));
-
-// Підключення гравців у реальному часі
-io.on('connection', (socket) => {
-  console.log(`[+] підключився ${socket.id} (онлайн: ${io.engine.clientsCount})`);
-  io.emit('online', io.engine.clientsCount);
-
-  socket.on('disconnect', () => {
-    console.log(`[-] відключився ${socket.id} (онлайн: ${io.engine.clientsCount})`);
-    io.emit('online', io.engine.clientsCount);
-  });
-});
-
-httpServer.listen(PORT, () => {
-  console.log(`Ashlands запущено: http://localhost:${PORT}`);
+httpServer.listen(config.port, () => {
+  console.log(`Ashlands запущено: http://localhost:${config.port}`);
 });
