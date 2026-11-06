@@ -17,6 +17,7 @@ import { initSidebarNav } from './ui/sidebarNav.js';
 import { initCharacterDetails } from './ui/characterDetails.js';
 import { initPlayersPanel } from './ui/playersPanel.js';
 import { initAllCharactersPanel } from './ui/allCharactersPanel.js';
+import { initItemLibraryPanel } from './ui/itemLibraryPanel.js';
 
 const gameScreen = document.getElementById('game-screen');
 
@@ -31,6 +32,7 @@ initSidebarNav(document.getElementById('sidebar'));
 initCharacterDetails(gameScreen.querySelector('[data-modal]'));
 initPlayersPanel(document.getElementById('players-panel'));
 initAllCharactersPanel(document.getElementById('all-characters-panel'));
+initItemLibraryPanel(document.getElementById('item-library-panel'));
 initActiveCharacterBadge(gameScreen.querySelector('[data-topbar-character]'));
 initAccountsPanel(document.getElementById('accounts-panel'));
 initCharactersPanel(document.getElementById('characters-panel'));

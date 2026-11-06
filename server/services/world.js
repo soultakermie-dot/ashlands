@@ -7,7 +7,12 @@ const WORLD_MAP = {
   image: '/assets/images/world-map-placeholder.svg',
   width: 4000,
   height: 3000,
+  // Масштаб: скільки метрів в одному пікселі карти. Для справжньої карти — підставити її масштаб.
+  metersPerPixel: 10,
 };
+
+// Передавати предмети й золото можна персонажу, що стоїть не далі за це.
+export const TRANSFER_RADIUS_M = 100;
 
 export const LOCATION_TYPES = { CITY: 'city', DUNGEON: 'dungeon' };
 
@@ -31,6 +36,12 @@ export function getWorld() {
 
 export function getSpawnPoint() {
   return { ...SPAWN };
+}
+
+// Відстань між двома персонажами на карті в метрах (null — хтось не на карті).
+export function distanceMeters(a, b) {
+  if (![a.x, a.y, b.x, b.y].every(Number.isFinite)) return null;
+  return Math.hypot(a.x - b.x, a.y - b.y) * WORLD_MAP.metersPerPixel;
 }
 
 // Чи точка в межах карти.

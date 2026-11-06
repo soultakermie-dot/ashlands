@@ -68,6 +68,8 @@ export async function createCharacter(user, { name, avatar }) {
     status: CHARACTER_STATUS.PENDING,
     x: null,                 // де стоїть на карті (з'явиться в стартовій точці, коли вийде на карту)
     y: null,
+    sheet: {},               // лист персонажа (поля — у sheet.js)
+    gold: 0,
     createdAt: new Date().toISOString(),
     reviewedAt: null,
   };

@@ -9,10 +9,13 @@ import { registerCharacters } from './handlers/characters.js';
 import { registerWorld } from './handlers/world.js';
 import { registerTokens } from './handlers/tokens.js';
 import { registerPlayers } from './handlers/players.js';
+import { registerSheet } from './handlers/sheet.js';
+import { registerItems } from './handlers/items.js';
+import { registerInventory } from './handlers/inventory.js';
 
 const handlers = [
   registerPresence, registerServerInfo, registerAuth, registerAccounts, registerCharacters, registerWorld,
-  registerTokens, registerPlayers,
+  registerTokens, registerPlayers, registerSheet, registerItems, registerInventory,
 ];
 
 // Найбільше повідомлення від клієнта (з запасом для аватарки до 512 КБ).

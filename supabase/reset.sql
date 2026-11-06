@@ -4,9 +4,11 @@
 -- ⚠️ Скасувати не можна!
 --
 -- Картинки аватарок цей скрипт не видаляє (Supabase не дозволяє чистити файли через SQL):
--- Storage → bucket «avatars» → виділити все → Delete.
+-- Storage → bucket «avatars» і «items» → виділити все → Delete.
 
 truncate table
+  public.inventory,
+  public.items,
   public.characters,
   public.admissions,
   public.sessions,

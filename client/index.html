@@ -14,6 +14,7 @@
   <link rel="stylesheet" href="css/map.css">
   <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/modal.css">
+  <link rel="stylesheet" href="css/inventory.css">
 </head>
 <body>
   <!-- Поки чекаємо на сервер -->
@@ -110,6 +111,7 @@
           <button type="button" class="nav-btn" data-open-view="lobby">🚪 <span>Вхід у гру</span><b class="nav-badge" data-badge="lobby" hidden></b></button>
           <button type="button" class="nav-btn" data-open-view="new-characters">🧙 <span>Нові персонажі</span><b class="nav-badge" data-badge="new-characters" hidden></b></button>
           <button type="button" class="nav-btn" data-open-view="all-characters">🗂 <span>Усі персонажі</span></button>
+          <button type="button" class="nav-btn" data-open-view="items">🧪 <span>Предмети</span></button>
         </div>
       </nav>
     </aside>
@@ -195,6 +197,16 @@
       <p class="form-message" hidden></p>
       <ul class="character-list" data-pending-characters></ul>
     </section>
+      </div>
+
+      <div data-view="items" data-title="🧪 Бібліотека предметів" hidden>
+        <section id="item-library-panel">
+          <p class="hint">Тут ДМ створює предмети. Видати предмет персонажу — у його інвентарі (🗂 Усі персонажі → 🎒).</p>
+          <p data-items-message></p>
+          <button type="button" class="btn" data-create-item>+ Новий предмет</button>
+          <div class="item-form" data-item-form hidden></div>
+          <ul class="inv-list" data-items></ul>
+        </section>
       </div>
 
       <div data-view="all-characters" data-title="🗂 Усі персонажі" hidden>

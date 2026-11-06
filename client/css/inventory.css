@@ -1,0 +1,134 @@
+/* Лист персонажа, інвентар, бібліотека предметів. */
+
+/* --- Перемикач «Лист / Інвентар» у шапці персонажа --- */
+.character-header__tabs { display: flex; gap: 0.5rem; margin-top: 0.35rem; }
+
+.tab-link {
+  padding: 0.2rem 0.6rem;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--text);
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+  opacity: 0.75;
+}
+
+.tab-link:hover { opacity: 1; }
+.tab-link--active { border-color: var(--accent); background: rgba(184, 146, 90, 0.18); opacity: 1; }
+
+/* --- Лист --- */
+.sheet { display: grid; gap: 0.75rem; margin-top: 1rem; }
+.sheet__title { margin: 0.5rem 0 0; font-size: 0.9rem; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.7; }
+
+.sheet__group { display: grid; gap: 0.6rem; }
+.sheet__group--main { grid-template-columns: 1fr 1fr 6rem; }
+.sheet__group--combat { grid-template-columns: repeat(4, 1fr); }
+.sheet__group--abilities { grid-template-columns: repeat(6, 1fr); }
+
+.sheet .field input,
+.sheet .field textarea,
+.inv-input {
+  width: 100%;
+  padding: 0.45rem 0.6rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text);
+  font: inherit;
+}
+
+.sheet .field textarea { resize: vertical; }
+.sheet .field input:focus,
+.sheet .field textarea:focus,
+.inv-input:focus { outline: none; border-color: var(--accent); }
+
+.sheet__ability { text-align: center; }
+.sheet__ability input { text-align: center; font-size: 1.1rem; font-weight: bold; }
+.sheet__mod { font-size: 0.85rem; opacity: 0.7; min-height: 1.1em; }
+
+@media (max-width: 560px) {
+  .sheet__group--main,
+  .sheet__group--combat { grid-template-columns: 1fr 1fr; }
+  .sheet__group--abilities { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* --- Інвентар --- */
+.inv-gold,
+.inv-give {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+.inv-gold__value { flex: 1; font-size: 1.1rem; font-weight: bold; color: var(--accent); }
+.inv-give { border-style: dashed; }
+.inv-give select { flex: 1; min-width: 10rem; }
+
+.inv-input--num { width: 5.5rem; }
+select.inv-input { width: auto; max-width: 100%; }
+
+.inv-list {
+  list-style: none;
+  margin: 1rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.inv-empty { margin-top: 1rem; }
+
+.inv-item {
+  display: grid;
+  grid-template-columns: 56px 1fr;
+  gap: 0.75rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+.inv-item--special { border-color: rgba(184, 146, 90, 0.6); }
+
+.inv-item__img {
+  width: 56px;
+  height: 56px;
+  border-radius: 6px;
+  object-fit: cover;
+  background: var(--bg);
+}
+
+.inv-item__img--empty { display: grid; place-items: center; font-size: 1.6rem; }
+
+.inv-item__info { min-width: 0; display: grid; gap: 0.2rem; align-content: start; }
+.inv-item__title { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.5rem; }
+.inv-item__qty { font-weight: bold; color: var(--accent); }
+.inv-item__kind { font-size: 0.75rem; padding: 0 0.4rem; border: 1px solid var(--accent); border-radius: 999px; color: var(--accent); }
+.inv-item__desc { margin: 0; font-size: 0.9rem; opacity: 0.85; white-space: pre-wrap; }
+.inv-item__stats { margin: 0; font-size: 0.85rem; font-style: italic; color: var(--accent); white-space: pre-wrap; }
+
+.inv-item__actions {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.4rem;
+}
+
+.inv-item__actions:empty { display: none; }
+.inv-transfer { display: inline-flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; }
+.inv-stats-form { display: grid; gap: 0.4rem; margin-top: 0.4rem; }
+
+/* --- Бібліотека --- */
+#item-library-panel > .btn { margin-top: 0.5rem; }
+.item-form { margin-top: 1rem; padding: 1rem; border: 1px dashed var(--accent); border-radius: 6px; }
+.item-form textarea { width: 100%; padding: 0.5rem; background: var(--bg); border: 1px solid var(--border); border-radius: 4px; color: var(--text); font: inherit; resize: vertical; }
+.item-preview { border-radius: 8px; font-size: 2rem; }
+.item-kinds { margin: 0; padding: 0.5rem 0.75rem; border: 1px solid var(--border); border-radius: 6px; display: grid; gap: 0.35rem; }
+.item-kinds legend { padding: 0 0.3rem; font-size: 0.9rem; }
+.item-kind { display: flex; gap: 0.5rem; align-items: center; font-size: 0.9rem; cursor: pointer; }

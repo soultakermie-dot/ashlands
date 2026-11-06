@@ -7,6 +7,7 @@ import { findUserById } from '../../services/users.js';
 import { handle } from '../handle.js';
 import { DM_ROOM, requireDm, requireInGame, userRoom } from '../identity.js';
 import { scheduleGameUpdate } from '../broadcast.js';
+import { dropInventoryOf } from '../../services/inventory.js';
 
 // Персонажі гравця + хто вибраний.
 function mineOf(user) {
@@ -44,6 +45,7 @@ export function registerCharacters(io, socket) {
     const user = requireInGame(socket);
     const name = findCharacter(characterId)?.name;
     await deleteCharacter(user, characterId);
+    dropInventoryOf(characterId);
     console.log(`[characters] ${user.login} видалив «${name}»`);
     pushMine(io, user.id);
     broadcastPending(io);

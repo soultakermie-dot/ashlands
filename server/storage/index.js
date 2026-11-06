@@ -25,8 +25,12 @@ export const stores = {
   users,                                 // акаунти: логін, роль, хеш пароля, примітка ДМ
   sessions: makeStore('sessions', [users]),     // активні входи
   admissions: makeStore('admissions', [users]), // кого ДМ пустив у гру
-  characters: makeStore('characters', [users]), // персонажі гравців
+  characters: makeStore('characters', [users]), // персонажі гравців (з листом і золотом)
+  items: makeStore('items'),             // бібліотека предметів (створює ДМ)
 };
+
+// Інвентар посилається і на персонажів, і на предмети — зберігається після них.
+stores.inventory = makeStore('inventory', [stores.characters, stores.items]);
 
 // Завантажуємо всі дані перед стартом сервера.
 try {
