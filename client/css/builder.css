@@ -1,0 +1,60 @@
+/* Режим «Будівельник»: 3D-місто на весь екран + панель зліва. */
+.builder {
+  position: absolute;
+  top: 3.25rem;           /* під верхньою панеллю */
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 14;
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  background: #101214;
+}
+
+.builder__viewport { position: relative; grid-column: 2; grid-row: 1; overflow: hidden; }
+.builder__viewport canvas { display: block; width: 100%; height: 100%; }
+
+.builder__panel {
+  grid-column: 1;
+  grid-row: 1;
+  padding: 0.75rem;
+  overflow-y: auto;
+  background: var(--panel);
+  border-right: 1px solid var(--border);
+  display: grid;
+  align-content: start;
+  gap: 0.6rem;
+}
+
+.builder-panel__head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+.builder-library { display: grid; gap: 0.5rem; }
+.builder-library__group { margin: 0.3rem 0 0.2rem; font-size: 0.8rem; opacity: 0.7; }
+
+.builder-model {
+  display: block;
+  width: 100%;
+  margin-bottom: 0.25rem;
+  padding: 0.45rem 0.6rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font: inherit;
+  font-size: 0.9rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.builder-model:hover { border-color: var(--accent); }
+.builder-model--active { border-color: var(--ok); background: rgba(143, 191, 106, 0.2); }
+.builder-hint { margin: 0; padding: 0.4rem 0.6rem; border: 1px dashed var(--ok); border-radius: 6px; font-size: 0.85rem; color: var(--ok); }
+.builder-selected { display: grid; gap: 0.4rem; }
+.builder-selected p { margin: 0; font-weight: bold; }
+.builder-modes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.3rem; }
+.builder-modes .tool-btn { text-align: center; padding: 0.4rem 0.2rem; font-size: 0.85rem; }
+.builder-help { font-size: 0.8rem; }
+
+/* Поки будуємо — ховаємо зайве з карти */
+.is-building .editor-toolbar,
+.is-building .banners,
+.is-building .map-controls { display: none; }

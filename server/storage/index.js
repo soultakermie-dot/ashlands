@@ -36,6 +36,8 @@ export const stores = {
 stores.inventory = makeStore('inventory', [stores.characters, stores.items]);
 // Дорога посилається на дві локації.
 stores.roads = makeStore('roads', [stores.locations]);
+// 3D-сцена міста посилається на місто (локацію).
+stores.cityScenes = makeStore('cityScenes', [stores.locations]);
 // Групи посилаються на персонажів.
 stores.groups = makeStore('groups', [stores.characters]);
 

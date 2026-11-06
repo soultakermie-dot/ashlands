@@ -22,6 +22,7 @@
   <link rel="stylesheet" href="css/notes.css">
   <link rel="stylesheet" href="css/clock.css">
   <link rel="stylesheet" href="css/dungeons.css">
+  <link rel="stylesheet" href="css/builder.css">
 </head>
 <body>
   <!-- Поки чекаємо на сервер -->
@@ -87,6 +88,12 @@
       </div>
     </div>
 
+    <!-- Будівельник: 3D-місто на весь екран -->
+    <div class="builder" data-builder hidden>
+      <div class="builder__viewport" data-builder-viewport></div>
+      <aside class="builder__panel" data-builder-panel></aside>
+    </div>
+
     <!-- Гравець у катакомбах: замість карти -->
     <div class="dungeon-screen" data-dungeon-screen hidden></div>
 
@@ -135,6 +142,7 @@
       <div class="mode-switch" data-mode-switch hidden>
         <button type="button" class="mode-switch__btn" data-set-mode="game">🎲 Ігровий</button>
         <button type="button" class="mode-switch__btn" data-set-mode="creative">🛠 Творчий</button>
+        <button type="button" class="mode-switch__btn" data-set-mode="builder">🏗 Будівельник</button>
       </div>
       <span class="topbar__clock" data-clock hidden></span>
       <span class="topbar__character" data-topbar-character></span>
@@ -303,6 +311,10 @@
     <span id="server-info" class="hint"></span>
   </footer>
 
+  <!-- 3D-рушій Three.js (режим «Будівельник»), віддає наш сервер з node_modules -->
+  <script type="importmap">
+    { "imports": { "three": "/vendor/three/build/three.module.js", "three/addons/": "/vendor/three/examples/jsm/" } }
+  </script>
   <script type="module" src="js/main.js"></script>
 </body>
 </html>

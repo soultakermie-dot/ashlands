@@ -10,6 +10,9 @@ const TOOLS = {
     { id: 'road', label: '〰 Дорога', hint: 'Клікни по одній локації, потім по іншій — між ними з\'явиться дорога.' },
     { id: 'spawn', label: '🚩 Старт', hint: 'Клікни на карті, де з\'являтимуться нові персонажі.' },
   ],
+  builder: [
+    { id: 'select', label: '🏗 Будівельник', hint: 'Клікни по місту на карті — відкриється його 3D-сцена для будування.' },
+  ],
   game: [
     { id: 'dungeon', label: '💀 Поставити підземелля', hint: 'Клікни на карті — там з\'явиться підземелля, і гравці одразу його побачать. Esc — скасувати.' },
   ],
@@ -47,7 +50,7 @@ export function initEditorToolbar(switchRoot, toolbar) {
     const active = tools.find((t) => t.id === editor.tool);
     hint.textContent = active?.hint ?? '';
     hint.hidden = !active;
-    toolbar.classList.toggle('editor-toolbar--game', editor.mode === 'game');
+    toolbar.classList.toggle('editor-toolbar--game', editor.mode !== 'creative');
   }
 
   document.addEventListener('keydown', (e) => {

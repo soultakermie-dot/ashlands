@@ -33,6 +33,8 @@ import { initClockControl } from './ui/clockControl.js';
 import { initDungeonOverlay } from './ui/dungeonOverlay.js';
 import { initDungeonsDmPanel } from './ui/dungeonsDmPanel.js';
 import { dungeonsState } from './state/dungeons.js';
+import { initBuilderView } from './builder/builderView.js';
+import { editor } from './state/editorMode.js';
 import { groupsState } from './state/groups.js';
 import { setBadge } from './ui/sidebarNav.js';
 
@@ -54,7 +56,10 @@ initConnectionStatus(socket, document.getElementById('connection-status'));
 initServerInfo(socket, document.getElementById('server-info'));
 initAuthScreen(document.getElementById('auth-screen'));
 initUserBar();
-initWorldMap(gameScreen);
+const builder = initBuilderView(gameScreen.querySelector('[data-builder]'), {});
+initWorldMap(gameScreen, { onBuildCity: (loc) => builder.open(loc) });
+// Вийшли з режиму будівельника (чи з гри) — закриваємо 3D-сцену.
+editor.onChange(({ mode }) => { if (mode !== 'builder' && builder.isOpen) builder.close(); });
 initSidebar(document.getElementById('sidebar'), gameScreen.querySelector('[data-sidebar-toggle]'));
 initModal(gameScreen.querySelector('[data-modal]'));
 initSidebarNav(document.getElementById('sidebar'));

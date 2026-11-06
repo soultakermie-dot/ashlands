@@ -216,6 +216,14 @@ export const tables = {
     }),
   },
 
+  cityScenes: {
+    table: 'city_scenes',
+    key: 'location_id',
+    defaults: { scenes: [] },
+    toRows: ({ scenes }) => scenes.map((s) => ({ location_id: s.locationId, folder: s.folder ?? null, objects: s.objects, updated_at: s.updatedAt })),
+    fromRows: (rows) => ({ scenes: rows.map((r) => ({ locationId: r.location_id, folder: r.folder, objects: r.objects ?? [], updatedAt: r.updated_at })) }),
+  },
+
   dmNotes: {
     table: 'dm_notes',
     key: 'id',

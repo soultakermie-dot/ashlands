@@ -16,7 +16,7 @@ import { travelState } from '../state/travel.js';
 import { dungeonsState } from '../state/dungeons.js';
 import { openDungeonEnter } from './dungeonsDmPanel.js';
 
-export function initWorldMap(root) {
+export function initWorldMap(root, { onBuildCity } = {}) {
   const mapEl = root.querySelector('[data-map]');
   const view = new MapView(mapEl);
   const message = root.querySelector('[data-map-message]');
@@ -108,6 +108,11 @@ export function initWorldMap(root) {
 
   // ---------- Кліки ----------
   function onLocationClick(loc) {
+    if (isDm() && editor.isBuilder) {
+      if (loc.type === 'city') onBuildCity?.(loc);
+      else showMessage('Будувати можна лише міста');
+      return;
+    }
     // Інструмент «Старт» + клік по місту — старт ставиться біля цього міста.
     if (creative() && editor.tool === 'spawn') {
       act(worldState.setSpawn(loc.x, Math.min(worldState.current.map.height, loc.y + 60)), `Стартова точка — біля «${loc.name}»`);

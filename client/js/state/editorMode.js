@@ -1,4 +1,4 @@
-// Режим ДМ: 'game' (ігровий) або 'creative' (творчий — редагування світу) і вибраний інструмент.
+// Режим ДМ: 'game' (ігровий), 'creative' (творчий — редагування світу), 'builder' (будівельник 3D-міст) і вибраний інструмент.
 // Інструменти творчого режиму: select (вибір і перетягування), city, road, spawn.
 // В ігровому режимі ДМ може тимчасово ввімкнути інструмент dungeon (поставити підземелля).
 import { session } from './session.js';
@@ -9,7 +9,8 @@ const listeners = new Set();
 let mode = 'game';
 let tool = 'select';
 
-try { if (localStorage.getItem(STORAGE_KEY) === 'creative') mode = 'creative'; } catch { /* не критично */ }
+const MODES = ['game', 'creative', 'builder'];
+try { const saved = localStorage.getItem(STORAGE_KEY); if (MODES.includes(saved)) mode = saved; } catch { /* не критично */ }
 
 function emit() {
   for (const fn of listeners) fn({ mode, tool });
@@ -28,9 +29,10 @@ export const editor = {
   get mode() { return mode; },
   get tool() { return tool; },
   get isCreative() { return mode === 'creative' && session.user?.role === 'dm'; },
+  get isBuilder() { return mode === 'builder' && session.user?.role === 'dm'; },
 
   setMode(next) {
-    mode = next === 'creative' ? 'creative' : 'game';
+    mode = MODES.includes(next) ? next : 'game';
     tool = 'select';
     try { localStorage.setItem(STORAGE_KEY, mode); } catch { /* не критично */ }
     emit();

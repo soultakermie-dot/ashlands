@@ -165,6 +165,9 @@ export function deleteLocation(id) {
     if (all[i].fromId === id || all[i].toId === id) all.splice(i, 1);
   }
   if (all.length !== before) stores.roads.save();
+  const scenes = stores.cityScenes.data.scenes;
+  const si = scenes.findIndex((s) => s.locationId === id);
+  if (si >= 0) { scenes.splice(si, 1); stores.cityScenes.save(); }
   stores.locations.save();
   return loc;
 }

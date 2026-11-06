@@ -8,6 +8,7 @@
 -- Storage → bucket «avatars» і «items» → виділити все → Delete.
 
 truncate table
+  public.city_scenes,
   public.dm_notes,
   public.groups,
   public.roads,

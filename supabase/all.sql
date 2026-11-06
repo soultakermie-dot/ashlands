@@ -141,3 +141,12 @@ create table if not exists public.dm_notes (
 );
 alter table public.dm_notes enable row level security;
 alter table public.characters add column if not exists dungeon jsonb;
+
+-- ===== 013_city_scenes.sql =====
+create table if not exists public.city_scenes (
+  location_id uuid        primary key references public.locations (id) on delete cascade,
+  folder      text,                                    -- папка міста в client/assets/models/cities/ (null — лише спільні моделі)
+  objects     jsonb       not null default '[]'::jsonb,
+  updated_at  timestamptz not null default now()
+);
+alter table public.city_scenes enable row level security;
