@@ -8,7 +8,8 @@
     "start": "node --env-file-if-exists=.env server/index.js",
     "dev": "node --env-file-if-exists=.env --watch server/index.js",
     "make-dm": "node --env-file-if-exists=.env scripts/make-dm.js",
-    "make-test-models": "node scripts/make-test-models.js"
+    "make-test-models": "node scripts/make-test-models.js",
+    "make-terrains": "node scripts/make-terrains.js"
   },
   "private": true,
   "dependencies": {

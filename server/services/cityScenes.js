@@ -59,6 +59,7 @@ export function getScene(locationId) {
     cityName: city.name,
     folder,
     folders: Object.keys(library.cities),
+    folderNames: Object.fromEntries(Object.entries(library.cities).map(([f, c]) => [f, c.name])),
     terrainUrl: folder ? library.cities[folder].terrainUrl : null,
     models: [...library.common, ...(folder ? library.cities[folder].models : [])],
     objects: s?.objects ?? [],

@@ -105,7 +105,7 @@ export class CityScene3D {
       this.groundMeshes.push(this.pointTerrain.mesh);
     } else if (url) {
       const terrain = await loadModel(url);
-      terrain.traverse((o) => { if (o.isMesh) { o.receiveShadow = true; this.groundMeshes.push(o); } });
+      terrain.traverse((o) => { if (o.isMesh) { o.receiveShadow = true; o.castShadow = true; this.groundMeshes.push(o); } });
       this.world.add(terrain);
     } else {
       const ground = new THREE.Mesh(

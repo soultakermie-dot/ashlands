@@ -449,7 +449,10 @@ ashlands/
 │
 ├── scripts/                # Службові команди
 │   ├── make-dm.js          # Зробити акаунт ДМом
-│   └── make-test-models.js # Згенерувати тестові 3D-моделі (npm run make-test-models)
+│   ├── make-test-models.js # Згенерувати тестові 3D-моделі (npm run make-test-models)
+│   ├── make-terrains.js    # Згенерувати готові варіанти рельєфу (npm run make-terrains)
+│   ├── terrains/           # Варіанти рельєфу (greenHills.js — «Зелені пагорби»)
+│   └── lib/                # glb.js (запис .glb), noise.js (шум, випадковість), shapes.js (камені, сходинки, шматки)
 ├── supabase/               # База даних: SQL-скрипти та інструкція
 │   ├── README.md           # Як підключити Supabase
 │   ├── all.sql             # Створити всю базу одним запуском

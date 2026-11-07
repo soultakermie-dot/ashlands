@@ -47,6 +47,7 @@ export function getLibrary() {
   for (const folder of listDirs(path.join(MODELS_DIR, 'cities'))) {
     const terrain = path.join(MODELS_DIR, 'cities', folder, 'terrain.glb');
     cities[folder] = {
+      name: manifest.folders?.[folder] ?? folder,
       terrainUrl: fs.existsSync(terrain) ? `${URL_BASE}/cities/${folder}/terrain.glb` : null,
       models: modelsIn(`cities/${folder}`, manifest),
     };

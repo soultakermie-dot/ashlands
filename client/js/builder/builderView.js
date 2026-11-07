@@ -223,7 +223,7 @@ export function initBuilderView(root, { onClose }) {
 
     const folder = el('select', { class: 'inv-input' },
       el('option', { value: '' }, '— лише спільні моделі —'),
-      city.folders.map((f) => el('option', { value: f, selected: f === city.folder }, f)));
+      city.folders.map((f) => el('option', { value: f, selected: f === city.folder }, city.folderNames?.[f] ?? f)));
     folder.addEventListener('change', async () => {
       const r = await save('build:setFolder', { folder: folder.value || null });
       if (r.ok) await load(city.locationId, true);

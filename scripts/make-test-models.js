@@ -1,9 +1,9 @@
 // Генерує тестові 3D-моделі (.glb) для перевірки режиму «Будівельник», поки нема моделей з Blender.
 // Запуск: npm run make-test-models
 // Модель відповідає вимогам з BUILDING.md: метри, точка опори внизу по центру, вісь вгору — Y (як після експорту з Blender).
-import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { writeGlb } from './lib/glb.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -42,65 +42,6 @@ function frustum(out, r0, y0, r1, y1, segments, phase = 0, capBottom = true) {
   }
 }
 
-// ---------- Запис .glb (glTF 2.0 Binary) ----------
-
-function writeGlb(file, parts) {
-  const chunks = [];
-  const bufferViews = [];
-  const accessors = [];
-  const primitives = [];
-  const materials = [];
-  let offset = 0;
-
-  const pushFloats = (arr, withMinMax) => {
-    const buf = Buffer.from(new Float32Array(arr).buffer);
-    bufferViews.push({ buffer: 0, byteOffset: offset, byteLength: buf.length, target: 34962 });
-    chunks.push(buf);
-    offset += buf.length;
-    const acc = { bufferView: bufferViews.length - 1, componentType: 5126, count: arr.length / 3, type: 'VEC3' };
-    if (withMinMax) {
-      acc.min = [0, 1, 2].map((k) => Math.min(...arr.filter((_, i) => i % 3 === k)));
-      acc.max = [0, 1, 2].map((k) => Math.max(...arr.filter((_, i) => i % 3 === k)));
-    }
-    accessors.push(acc);
-    return accessors.length - 1;
-  };
-
-  for (const part of parts) {
-    materials.push({ name: part.name, pbrMetallicRoughness: { baseColorFactor: part.color, metallicFactor: 0, roughnessFactor: 0.9 } });
-    const pos = pushFloats(part.geometry.positions, true);
-    const nor = pushFloats(part.geometry.normals, false);
-    primitives.push({ attributes: { POSITION: pos, NORMAL: nor }, material: materials.length - 1 });
-  }
-
-  const bin = Buffer.concat(chunks);
-  const json = {
-    asset: { version: '2.0', generator: 'Ashlands make-test-models' },
-    scene: 0,
-    scenes: [{ nodes: [0] }],
-    nodes: [{ mesh: 0, name: path.basename(file, '.glb') }],
-    meshes: [{ primitives }],
-    materials,
-    accessors,
-    bufferViews,
-    buffers: [{ byteLength: bin.length }],
-  };
-
-  const pad = (b, fill) => (b.length % 4 ? Buffer.concat([b, Buffer.alloc(4 - (b.length % 4), fill)]) : b);
-  const jsonBuf = pad(Buffer.from(JSON.stringify(json)), 0x20);
-  const binBuf = pad(bin, 0);
-  const header = Buffer.alloc(12);
-  header.writeUInt32LE(0x46546c67, 0); // 'glTF'
-  header.writeUInt32LE(2, 4);
-  header.writeUInt32LE(12 + 8 + jsonBuf.length + 8 + binBuf.length, 8);
-  const chunkHeader = (len, type) => { const h = Buffer.alloc(8); h.writeUInt32LE(len, 0); h.writeUInt32LE(type, 4); return h; };
-
-  fs.mkdirSync(path.dirname(file), { recursive: true });
-  fs.writeFileSync(file, Buffer.concat([header, chunkHeader(jsonBuf.length, 0x4e4f534a), jsonBuf, chunkHeader(binBuf.length, 0x004e4942), binBuf]));
-  const triangles = parts.reduce((n, p) => n + p.geometry.positions.length / 9, 0);
-  console.log(`✓ ${path.relative(ROOT, file)} — ${triangles} трикутників, ${(fs.statSync(file).size / 1024).toFixed(1)} КБ`);
-}
-
 // ---------- Тестова ялина: ~6 м заввишки ----------
 
 const trunk = { positions: [], normals: [] };
@@ -111,7 +52,10 @@ frustum(needles, 1.9, 1.4, 0, 3.6, 8, 0.2);
 frustum(needles, 1.5, 2.7, 0, 4.8, 8, 0.6);
 frustum(needles, 1.05, 3.9, 0, 6.0, 8, 0.1);
 
-writeGlb(path.join(ROOT, 'client/assets/models/common/nature/test_tree.glb'), [
-  { name: 'Стовбур', color: [0.36, 0.25, 0.16, 1], geometry: trunk },
-  { name: 'Хвоя', color: [0.17, 0.3, 0.17, 1], geometry: needles },
-]);
+const file = path.join(ROOT, 'client/assets/models/common/nature/test_tree.glb');
+const { triangles, bytes } = writeGlb(file, {
+  generator: 'Ashlands make-test-models',
+  materials: [{ name: 'Стовбур', color: [0.36, 0.25, 0.16, 1] }, { name: 'Хвоя', color: [0.17, 0.3, 0.17, 1] }],
+  primitives: [{ material: 0, ...trunk }, { material: 1, ...needles }],
+});
+console.log(`✓ ${path.relative(ROOT, file)} — ${triangles} трикутників, ${(bytes / 1024).toFixed(1)} КБ`);
