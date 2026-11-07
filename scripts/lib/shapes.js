@@ -124,6 +124,8 @@ export function box(o) {
 }
 
 // ---------- Збирач по шматках ----------
+// Кожен шматок (квадрат size × size) і кожен матеріал — окрема частина моделі: браузер швидко
+// відкидає далекі шматки, коли шукає висоту землі. Частина може мати uv (текстурні координати).
 
 export class ChunkedMesh {
   constructor(minX, minZ, size) {
@@ -133,26 +135,27 @@ export class ChunkedMesh {
     this.chunks = new Map();
   }
 
-  #chunk(x, z) {
-    const key = `${Math.floor((x - this.minX) / this.size)},${Math.floor((z - this.minZ) / this.size)}`;
-    if (!this.chunks.has(key)) this.chunks.set(key, { pos: [], nor: [], col: [], idx: [] });
+  #chunk(x, z, material) {
+    const key = `${material}|${Math.floor((x - this.minX) / this.size)},${Math.floor((z - this.minZ) / this.size)}`;
+    if (!this.chunks.has(key)) this.chunks.set(key, { material, pos: [], nor: [], col: [], uv: [], idx: [] });
     return this.chunks.get(key);
   }
 
-  // Додати частину в шматок, де лежить точка (x, z).
-  add(x, z, part) {
-    const c = this.#chunk(x, z);
+  // Додати частину в шматок, де лежить точка (x, z), з матеріалом material.
+  add(x, z, part, material = 0) {
+    const c = this.#chunk(x, z, material);
     const base = c.pos.length / 3;
     for (const v of part.pos) c.pos.push(v);
     for (const v of part.nor) c.nor.push(v);
     for (const v of part.col) c.col.push(v);
+    if (part.uv) for (const v of part.uv) c.uv.push(v);
     for (const i of part.idx) c.idx.push(base + i);
   }
 
-  primitives(material) {
+  primitives() {
     // Кольори задаємо «як на екрані» (sRGB), а glTF зберігає лінійні — перераховуємо.
     const lin = (v) => Math.round(Math.min(1, Math.max(0, v)) ** 2.2 * 255);
-    return [...this.chunks.values()].filter((c) => c.idx.length).map((c) => {
+    return [...this.chunks.values()].filter((c) => c.idx.length).sort((a, b) => a.material - b.material).map((c) => {
       const colors = new Uint8Array((c.col.length / 3) * 4);
       for (let i = 0, j = 0; i < c.col.length; i += 3, j += 4) {
         colors[j] = lin(c.col[i]);
@@ -160,7 +163,14 @@ export class ChunkedMesh {
         colors[j + 2] = lin(c.col[i + 2]);
         colors[j + 3] = 255;
       }
-      return { material, positions: Float32Array.from(c.pos), normals: Float32Array.from(c.nor), colors, indices: Uint32Array.from(c.idx) };
+      return {
+        material: c.material,
+        positions: Float32Array.from(c.pos),
+        normals: Float32Array.from(c.nor),
+        colors,
+        uvs: c.uv.length ? Float32Array.from(c.uv) : undefined,
+        indices: Uint32Array.from(c.idx),
+      };
     });
   }
 }

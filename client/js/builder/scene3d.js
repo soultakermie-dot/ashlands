@@ -6,6 +6,9 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { TransformControls } from 'three/addons/controls/TransformControls.js';
 import { WalkControls } from './walkControls.js';
 import { PointTerrain } from './terrainMesh.js';
+import { applyTerrainMaterials } from './terrainMaterials.js';
+
+const SKY = 0x8b969c;               // похмуре сіро-блакитне небо (і туман)
 
 const DEFAULT_GROUND_SIZE = 200;   // метрів, якщо в міста ще нема свого рельєфу
 const loader = new GLTFLoader();
@@ -28,27 +31,36 @@ export class CityScene3D {
     this.container = container;
     this.handlers = handlers;
     this.objects = new Map();      // id → THREE.Object3D (обгортка з userData.objectId)
-    this.groundMeshes = [];
+    this.groundMeshes = [];        // по чому ходимо й ставимо моделі
+    this.waterMeshes = [];         // вода (туди не зайти)
+    this.waterMaterials = [];
     this.running = false;
 
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     this.renderer.shadowMap.enabled = true;
+    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    this.renderer.toneMappingExposure = 1.05;
     container.append(this.renderer.domElement);
 
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0x8fa3b0);
-    this.scene.fog = new THREE.Fog(0x8fa3b0, 150, 450);
+    this.scene.background = new THREE.Color(SKY);
+    this.scene.fog = new THREE.Fog(SKY, 140, 560);
+    this.scene.environment = skyEnvironment(this.renderer);
+    this.scene.environmentIntensity = 0.55;
 
     this.camera = new THREE.PerspectiveCamera(55, 1, 0.1, 2000);
     this.camera.position.set(40, 35, 55);
 
-    this.scene.add(new THREE.HemisphereLight(0xdfe8f0, 0x4a3d2e, 1.1));
-    const sun = new THREE.DirectionalLight(0xfff1d6, 2.2);
-    sun.position.set(60, 90, 40);
+    this.scene.add(new THREE.HemisphereLight(0xbcc6cc, 0x3b382e, 0.6));
+    const sun = new THREE.DirectionalLight(0xffeedd, 2.0);   // приглушене сонце крізь хмари
+    sun.position.set(-90, 120, 70);
     sun.castShadow = true;
-    sun.shadow.mapSize.set(2048, 2048);
-    Object.assign(sun.shadow.camera, { left: -120, right: 120, top: 120, bottom: -120, far: 400 });
+    sun.shadow.mapSize.set(4096, 4096);
+    sun.shadow.bias = -0.0004;
+    sun.shadow.normalBias = 0.04;
+    Object.assign(sun.shadow.camera, { left: -180, right: 180, top: 180, bottom: -180, far: 500 });
     this.scene.add(sun);
 
     this.world = new THREE.Group();   // рельєф
@@ -82,7 +94,7 @@ export class CityScene3D {
     this.setMode('translate');
 
     this.raycaster = new THREE.Raycaster();
-    this.walk = new WalkControls(this.camera, this.renderer.domElement, (x, z) => this.groundHeight(x, z));
+    this.walk = new WalkControls(this.camera, this.renderer.domElement, (x, z) => this.walkHeight(x, z));
     this.cameraMode = 'orbit';
     this.clock = new THREE.Clock();
     this.#bindPointer();
@@ -95,6 +107,8 @@ export class CityScene3D {
   async setTerrain(url, points = null) {
     this.world.clear();
     this.groundMeshes = [];
+    this.waterMeshes = [];
+    this.waterMaterials = [];
     this.pointTerrain = null;
     if (this.gizmo.object === this.pointHandle) this.gizmo.detach();
     if (points && !url) {
@@ -105,7 +119,10 @@ export class CityScene3D {
       this.groundMeshes.push(this.pointTerrain.mesh);
     } else if (url) {
       const terrain = await loadModel(url);
-      terrain.traverse((o) => { if (o.isMesh) { o.receiveShadow = true; o.castShadow = true; this.groundMeshes.push(o); } });
+      const parts = applyTerrainMaterials(terrain, url, this.renderer);
+      this.groundMeshes.push(...parts.ground);
+      this.waterMeshes = parts.water;
+      this.waterMaterials = parts.waterMaterials;
       this.world.add(terrain);
     } else {
       const ground = new THREE.Mesh(
@@ -136,7 +153,7 @@ export class CityScene3D {
         node = new THREE.Group();
         node.userData = { objectId: o.id, model: o.model };
         const model = await loadModel(urlOf(o.model));
-        model.traverse((m) => { if (m.isMesh) { m.castShadow = true; m.receiveShadow = true; } });
+        applyTerrainMaterials(model, urlOf(o.model), this.renderer);   // фото-матеріали (кора, листя…) + тіні
         node.add(model);
         this.placed.add(node);
         this.objects.set(o.id, node);
@@ -199,6 +216,21 @@ export class CityScene3D {
     const hit = this.raycaster.intersectObjects(this.groundMeshes, false)[0];
     return hit ? hit.point.y : 0;
   }
+
+  // Куди можна ступити пішки: висота землі, або null — за краєм ділянки чи в глибокій воді.
+  walkHeight(x, z) {
+    if (this.pointTerrain) return this.pointTerrain.heightAt(x, z);
+    this.raycaster.set(this.#rayFrom.set(x, 1000, z), DOWN);
+    const hit = this.raycaster.intersectObjects(this.groundMeshes, false)[0];
+    if (!hit) return null;
+    if (this.waterMeshes.length) {
+      const water = this.raycaster.intersectObjects(this.waterMeshes, false)[0];
+      if (water && water.point.y - hit.point.y > 0.7) return null;
+    }
+    return hit.point.y;
+  }
+
+  #rayFrom = new THREE.Vector3();
 
   // ---------- Редагування землі з точок ----------
 
@@ -295,6 +327,8 @@ export class CityScene3D {
       const dt = Math.min(0.1, this.clock.getDelta());
       if (this.cameraMode === 'walk') this.walk.update(dt);
       else this.orbit.update();
+      this.waterTime = (this.waterTime ?? 0) + dt;
+      for (const m of this.waterMaterials) m.normalMap.offset.set(this.waterTime * 0.012, this.waterTime * 0.02);
       this.renderer.render(this.scene, this.camera);
       requestAnimationFrame(loop);
     };
@@ -370,3 +404,24 @@ export class CityScene3D {
   }
 }
 
+
+const DOWN = new THREE.Vector3(0, -1, 0);
+
+// Відблиски неба: маленька «небесна сфера» (згори світліше, донизу — темна земля) → карта оточення.
+function skyEnvironment(renderer) {
+  const sky = new THREE.Scene();
+  const geo = new THREE.SphereGeometry(10, 32, 16);
+  const mat = new THREE.ShaderMaterial({
+    side: THREE.BackSide,
+    uniforms: { top: { value: new THREE.Color(0x9aa6ae) }, horizon: { value: new THREE.Color(0xc2c5c2) }, bottom: { value: new THREE.Color(0x34322b) } },
+    vertexShader: 'varying vec3 vP; void main() { vP = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+    fragmentShader: 'uniform vec3 top; uniform vec3 horizon; uniform vec3 bottom; varying vec3 vP; void main() { float h = normalize(vP).y; vec3 c = h > 0.0 ? mix(horizon, top, pow(h, 0.6)) : mix(horizon, bottom, pow(-h, 0.4)); gl_FragColor = vec4(c, 1.0); }',
+  });
+  sky.add(new THREE.Mesh(geo, mat));
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  const env = pmrem.fromScene(sky, 0.02).texture;
+  pmrem.dispose();
+  geo.dispose();
+  mat.dispose();
+  return env;
+}

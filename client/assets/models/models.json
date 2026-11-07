@@ -9,6 +9,16 @@
     "green_hills": "Зелені пагорби"
   },
   "names": {
-    "common/nature/test_tree.glb": "Ялина (тестова)"
+    "common/nature/test_tree.glb": "Ялина (тестова)",
+    "cities/green_hills/nature/spruce_1.glb": "Ялина 1",
+    "cities/green_hills/nature/spruce_2.glb": "Ялина 2",
+    "cities/green_hills/nature/spruce_3.glb": "Ялина 3",
+    "cities/green_hills/nature/spruce_4.glb": "Ялина 4",
+    "cities/green_hills/nature/tree_1.glb": "Листяне дерево 1",
+    "cities/green_hills/nature/tree_2.glb": "Листяне дерево 2",
+    "cities/green_hills/nature/tree_3.glb": "Листяне дерево 3",
+    "cities/green_hills/nature/bush_1.glb": "Кущ 1",
+    "cities/green_hills/nature/bush_2.glb": "Кущ 2",
+    "cities/green_hills/nature/bush_3.glb": "Кущ 3"
   }
 }

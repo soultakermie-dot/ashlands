@@ -61,6 +61,17 @@ export function modelExists(rel) {
   return fs.existsSync(path.join(MODELS_DIR, rel));
 }
 
+// План посадки варіанта рельєфу (cities/<папка>/layout.json): [{ model, x, y, z, rotY, scale }], або [].
+export function folderLayout(folder) {
+  if (!folderExists(folder)) return [];
+  try {
+    const data = JSON.parse(fs.readFileSync(path.join(MODELS_DIR, 'cities', folder, 'layout.json'), 'utf8'));
+    return Array.isArray(data.objects) ? data.objects.filter((o) => modelExists(o.model)) : [];
+  } catch {
+    return [];
+  }
+}
+
 export function folderExists(folder) {
   return typeof folder === 'string' && /^[a-z0-9_-]+$/i.test(folder) && fs.existsSync(path.join(MODELS_DIR, 'cities', folder));
 }

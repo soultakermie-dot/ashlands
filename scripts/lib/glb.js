@@ -1,8 +1,9 @@
 // Запис 3D-моделі у файл .glb (glTF 2.0 Binary) — без сторонніх бібліотек.
 // writeGlb(file, { materials, primitives })
-//   materials:  [{ name, color: [r, g, b, a], roughness? }]  (color множиться на кольори вершин, якщо вони є)
-//   primitives: [{ material, positions, normals, colors?, indices? }]
-//     positions / normals — масиви чисел x,y,z…; colors — Uint8Array RGBA (0–255) на кожну вершину; indices — номери вершин трикутників.
+//   materials:  [{ name, color: [r, g, b, a], roughness?, extras? }]  (color множиться на кольори вершин, якщо вони є)
+//   primitives: [{ material, positions, normals, colors?, uvs?, indices? }]
+//     positions / normals — масиви чисел x,y,z…; colors — Uint8Array RGBA (0–255) на кожну вершину;
+//     uvs — u,v…; indices — номери вершин трикутників.
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -20,13 +21,13 @@ export function writeGlb(file, { materials, primitives, name = path.basename(fil
     return bufferViews.length - 1;
   };
 
-  const vec3 = (arr, withMinMax) => {
+  const floats = (arr, size, withMinMax) => {
     const f = arr instanceof Float32Array ? arr : Float32Array.from(arr);
-    const acc = { bufferView: addView(Buffer.from(f.buffer, f.byteOffset, f.byteLength), 34962), componentType: 5126, count: f.length / 3, type: 'VEC3' };
+    const acc = { bufferView: addView(Buffer.from(f.buffer, f.byteOffset, f.byteLength), 34962), componentType: 5126, count: f.length / size, type: `VEC${size}` };
     if (withMinMax) {
-      const min = [Infinity, Infinity, Infinity];
-      const max = [-Infinity, -Infinity, -Infinity];
-      for (let i = 0; i < f.length; i++) { const k = i % 3; if (f[i] < min[k]) min[k] = f[i]; if (f[i] > max[k]) max[k] = f[i]; }
+      const min = Array(size).fill(Infinity);
+      const max = Array(size).fill(-Infinity);
+      for (let i = 0; i < f.length; i++) { const k = i % size; if (f[i] < min[k]) min[k] = f[i]; if (f[i] > max[k]) max[k] = f[i]; }
       acc.min = min;
       acc.max = max;
     }
@@ -35,7 +36,8 @@ export function writeGlb(file, { materials, primitives, name = path.basename(fil
   };
 
   const gltfPrimitives = primitives.map((p) => {
-    const attributes = { POSITION: vec3(p.positions, true), NORMAL: vec3(p.normals, false) };
+    const attributes = { POSITION: floats(p.positions, 3, true), NORMAL: floats(p.normals, 3, false) };
+    if (p.uvs) attributes.TEXCOORD_0 = floats(p.uvs, 2, false);
     if (p.colors) {
       const c = p.colors;
       accessors.push({ bufferView: addView(Buffer.from(c.buffer, c.byteOffset, c.byteLength), 34962), componentType: 5121, normalized: true, count: c.length / 4, type: 'VEC4' });
@@ -59,7 +61,12 @@ export function writeGlb(file, { materials, primitives, name = path.basename(fil
     scenes: [{ nodes: [0] }],
     nodes: [{ mesh: 0, name }],
     meshes: [{ name, primitives: gltfPrimitives }],
-    materials: materials.map((m) => ({ name: m.name, pbrMetallicRoughness: { baseColorFactor: m.color ?? [1, 1, 1, 1], metallicFactor: 0, roughnessFactor: m.roughness ?? 0.9 } })),
+    materials: materials.map((m) => ({
+      name: m.name,
+      pbrMetallicRoughness: { baseColorFactor: m.color ?? [1, 1, 1, 1], metallicFactor: 0, roughnessFactor: m.roughness ?? 0.9 },
+      ...(m.doubleSided ? { doubleSided: true } : {}),
+      ...(m.extras ? { extras: m.extras } : {}),
+    })),
     accessors,
     bufferViews,
     buffers: [{ byteLength: bin.length }],

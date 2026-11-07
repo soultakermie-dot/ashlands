@@ -2,10 +2,10 @@
 import crypto from 'node:crypto';
 import { stores } from '../storage/index.js';
 import { GameError } from './errors.js';
-import { folderExists, getLibrary, modelExists } from './models.js';
+import { folderExists, folderLayout, getLibrary, modelExists } from './models.js';
 import { findLocation } from './world.js';
 
-const MAX_OBJECTS = 2000;
+const MAX_OBJECTS = 5000;
 const COORD_MAX = 5000;   // метри від центру міста
 const SCALE_MIN = 0.05;
 const SCALE_MAX = 20;
@@ -63,15 +63,37 @@ export function getScene(locationId) {
     terrainUrl: folder ? library.cities[folder].terrainUrl : null,
     models: [...library.common, ...(folder ? library.cities[folder].models : [])],
     objects: s?.objects ?? [],
+    layoutCount: folder ? folderLayout(folder).length : 0,   // скільки рослин у плані посадки варіанта
   };
 }
 
+// Вибрати папку моделей (варіант рельєфу). Якщо в місті ще порожньо — одразу садимо рослини варіанта.
 export function setFolder(locationId, folder) {
   getCity(locationId);
   if (folder !== null && !folderExists(folder)) throw new GameError('Такої папки міста нема');
   const s = sceneOf(locationId, true);
   s.folder = folder;
+  if (folder && !s.objects.length) plant(s, folderLayout(folder));
   touch(s);
+}
+
+// Посадити рослини з плану варіанта (кожна — окремий предмет: можна видалити, посунути).
+export function plantLayout(locationId) {
+  getCity(locationId);
+  const s = sceneOf(locationId, true);
+  if (!s.folder) throw new GameError('Спершу виберіть папку моделей міста');
+  const layout = folderLayout(s.folder);
+  if (!layout.length) throw new GameError('У цього варіанта нема плану посадки');
+  const added = plant(s, layout);
+  touch(s);
+  return added;
+}
+
+function plant(s, layout) {
+  const room = MAX_OBJECTS - s.objects.length;
+  if (layout.length > room) throw new GameError(`Не вміститься: у місті ${s.objects.length} об'єктів, а треба посадити ${layout.length} (максимум ${MAX_OBJECTS})`);
+  for (const o of layout) s.objects.push({ id: crypto.randomUUID(), model: o.model, ...cleanTransform(o) });
+  return layout.length;
 }
 
 export function addObject(locationId, { model, ...t }) {

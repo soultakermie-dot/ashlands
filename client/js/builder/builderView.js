@@ -84,6 +84,13 @@ export function initBuilderView(root, { onClose }) {
     render();
   }
 
+  // Посадити рослини варіанта рельєфу ще раз (кожна — окремий предмет: клік → Delete, щоб прибрати).
+  async function plantLayout() {
+    if (!confirm(`Посадити ${city.layoutCount} дерев і кущів? Ті, що вже стоять, лишаться — можуть вийти подвійні.`)) return;
+    const r = await save('build:plant', {});
+    if (r.ok) { message.show(`Посаджено: ${r.added}`, 'info'); await load(city.locationId, false); }
+  }
+
   // ---------- Земля ----------
 
   // Завантажити землю з сервера (вибір точок зберігаємо, якщо вони ще є).
@@ -266,6 +273,8 @@ export function initBuilderView(root, { onClose }) {
 
   function objectsPanel(selected, groups, modelName) {
     return [
+      city.layoutCount ? el('div', { class: 'builder-row' },
+        button(`🌲 Посадити рослини варіанта (${city.layoutCount})`, 'btn--ghost', plantLayout, 'Дерева й кущі з плану цього рельєфу — кожен окремим предметом')) : null,
       el('h3', { class: 'sheet__title' }, 'Моделі'),
       city.models.length
         ? el('div', { class: 'builder-library' }, [...groups].map(([name, models]) => el('div', {},
