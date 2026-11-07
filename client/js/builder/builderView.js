@@ -226,7 +226,10 @@ export function initBuilderView(root, { onClose }) {
       city.folders.map((f) => el('option', { value: f, selected: f === city.folder }, city.folderNames?.[f] ?? f)));
     folder.addEventListener('change', async () => {
       const r = await save('build:setFolder', { folder: folder.value || null });
-      if (r.ok) await load(city.locationId, true);
+      if (!r.ok) return;
+      await load(city.locationId, true);
+      // У папці є свій рельєф (terrain.glb) — одразу його й показуємо.
+      if (city.terrainUrl && terrain && terrain.mode !== 'glb') await setTerrainMode('glb');
     });
 
     // Бібліотека: за категоріями.
